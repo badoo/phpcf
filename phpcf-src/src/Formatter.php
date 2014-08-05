@@ -112,8 +112,18 @@ class Formatter
         try {
             $lines = [];
             if (strpos($file, ':') !== false) {
-                list($file, $lines) = explode(':', $file);
-                $lines = $this->parseLines($lines);
+                // Support for absolute paths on Windows
+                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' && preg_match('/^[A-Z]\\:/s', $file)) {
+                    $parts = explode(':', $file);
+                    if (count($parts) == 3) {
+                        $file = $parts[0] . ":" . $parts[1];
+                        $lines = $parts[2];
+                        $lines = $this->parseLines($lines);
+                    }
+                } else {
+                    list($file, $lines) = explode(':', $file);
+                    $lines = $this->parseLines($lines);
+                }
             }
 
             $Result = new FormattingResult($file);
