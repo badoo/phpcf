@@ -72,11 +72,13 @@ $fsm_context_rules_switch = [
 
 $fsm_context_rules_loops = [
     'CTX_WHILE' => [
-        '{ {_EMPTY' => 'CTX_GENERIC_BLOCK',
+        '{' => 'CTX_GENERIC_BLOCK',
+        '{_EMPTY' => 'CTX_EMPTY_BLOCK_END',
         ';' => -1
     ] + $fsm_inline_rules,
     'CTX_FOREACH' => [
-        '{ {_EMPTY'   => 'CTX_GENERIC_BLOCK',
+        '{'   => 'CTX_GENERIC_BLOCK',
+        '{_EMPTY'   => 'CTX_EMPTY_BLOCK_END',
         '; :' => -1,
     ] + $fsm_inline_rules,
     'CTX_FOR' => [
