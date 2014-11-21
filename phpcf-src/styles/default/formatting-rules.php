@@ -251,7 +251,7 @@ $controls = [
             PHPCF_KEY_LEFT => PHPCF_EX_SHRINK_SPACES_STRONG,
             PHPCF_KEY_DESCR_RIGHT => 'One space after binary operators (= < > * . etc) ',
             PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES_STRONG,
-        ]
+        ],
     ],
     'T_USE' => [
         PHPCF_KEY_ALL => [
@@ -283,9 +283,15 @@ $controls = [
     ],
     '+_UNARY -_UNARY &_UNARY ! @ $ ~' => [
         PHPCF_KEY_ALL => [
-            PHPCF_KEY_DESCR_RIGHT => 'Nothing before unary: + - & ! @ $',
+            PHPCF_KEY_DESCR_RIGHT => 'Nothing after unary: + - & ! @ $',
             PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES_STRONG,
         ],
+    ],
+    '& &_UNARY' => [
+        'CTX_FUNCTION_D CTX_FUNCTION_PARAMS CTX_FUNCTION_LONG_PARAMS CTX_ANONFUNC_LONG_D CTX_FUNCTION_LONG_D' => [
+            PHPCF_KEY_DESCR_RIGHT => 'Nothing after "&" in function/method signature',
+            PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES_STRONG,
+        ]
     ],
     '._NL T_BOOLEAN_AND_NL T_BOOLEAN_OR_NL T_LOGICAL_AND_NL T_LOGICAL_OR_NL' => [
         'CTX_INLINE_FIRST_NL CTX_LONG_FIRST_NL' => [
