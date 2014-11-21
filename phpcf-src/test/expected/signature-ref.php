@@ -5,7 +5,7 @@
 
 function (DateTime &$Date, &$ref) {
     //anon func
-}
+};
 
 function test1(DateTime &$Date, &$ref) {
     // named function
