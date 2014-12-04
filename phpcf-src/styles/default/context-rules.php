@@ -304,7 +304,7 @@ $fsm_context_rules = [
         $fsm_nl_tokens            => 'CTX_LONG_EXPR_NL',
         'T_DOUBLE_ARROW ,'        => ['NOW' => 'CTX_INLINE_EXPR_NL_END', 'NEXT' => -1],
         ', ,_LONG'                => ['NOW' => 'CTX_LONG_EXPR_NL_END',   'NEXT' => -1],
-        ')'                       => ['NOW' => 'CTX_LONG_EXPR_NL_END',   'NEXT' => -2],
+        ') ]'                     => ['NOW' => 'CTX_LONG_EXPR_NL_END',   'NEXT' => -2],
     ] + $fsm_inline_rules,
     'CTX_INLINE_FIRST_NL CTX_INLINE_EXPR_NL' => [
         $fsm_nl_tokens         => 'CTX_INLINE_EXPR_NL',

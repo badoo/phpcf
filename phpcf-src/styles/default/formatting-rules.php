@@ -406,6 +406,12 @@ $controls = [
             PHPCF_KEY_DESCR_RIGHT => 'Nothing after "]" in short-syntax multiline array',
             PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES,
         ],
+        'CTX_LONG_EXPR_NL_END' => [
+            PHPCF_KEY_DESCR_LEFT => '"]" to start on a new line in long expression',
+            PHPCF_KEY_LEFT => [PHPCF_EX_DECREASE_INDENT, PHPCF_EX_DECREASE_INDENT, PHPCF_EX_CHECK_NL],
+            PHPCF_KEY_DESCR_RIGHT => 'Nothing after "]" in long expression',
+            PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES,
+        ],
         PHPCF_KEY_ALL => [
             PHPCF_KEY_DESCR_LEFT => 'Nothing before "]"',
             PHPCF_KEY_LEFT => PHPCF_EX_DELETE_SPACES_STRONG,
