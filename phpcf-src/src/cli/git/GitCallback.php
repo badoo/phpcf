@@ -45,7 +45,7 @@ class GitCallback
 
             if ($commits) {
                 $code = Helper::exec(
-                    'show --pretty="format:" --name-only ' . $commits . '  -- | sort -u | tail -n +2',
+                    'show --pretty="format:" --name-only ' . $commits . '  -- | sort -u',
                     $files,
                     $err
                 );
