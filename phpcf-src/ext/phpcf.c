@@ -467,7 +467,7 @@ static void sniff_context_message(Formatter *frm, char *in, char *out, int origi
                     else {
                     	smart_str_appends(&str, "nothing");
                     }
-                    sprintf(buffer, " on line %d", token_line + i);
+                    sprintf(buffer, " on line %d column %d", token_line + i, inlen + 1);
                     smart_str_appends(&str, buffer);
                 }
 

@@ -700,7 +700,9 @@ class Pure implements \Phpcf\IFormatter
                 PHPCF_KEY_LINE  => $this->current_line,
             ];
         } else {
-            $this->tokens[key($this->tokens)][1] = $text . $this->tokens[key($this->tokens)][1];
+            $el = &$this->tokens[key($this->tokens)];
+            $el[1] = $text . $el[1];
+            $el[2] -= substr_count($text, "\n");
         }
     }
 
@@ -1592,9 +1594,10 @@ class Pure implements \Phpcf\IFormatter
                     $this->Stat->addIssue($padding . $reason);
                 } else {
                     $ln = $token_line + $k;
+                    $col = strlen($in_lines[$k]) + 1;
                     $reason = "Expected " . $this->getIndentDescription($v) . ", got "
                         . $this->getIndentDescription($in_lines[$k]);
-                    $this->Stat->addIssue($padding . $reason . " on line $ln");
+                    $this->Stat->addIssue($padding . $reason . " on line $ln column $col");
                 }
             }
         }

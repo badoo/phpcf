@@ -130,6 +130,7 @@ class PHPCFTest extends PHPUnit_Framework_TestCase
     {
         $Options = new \Phpcf\Options();
         $Options->usePure($pure);
+        $Options->toggleSniff(true);
         return new \Phpcf\Formatter($Options);
     }
 
@@ -162,5 +163,42 @@ class PHPCFTest extends PHPUnit_Framework_TestCase
         }
 
         return self::$files;
+    }
+
+    /**
+     * Test, that issues ends with correct message
+     * @dataProvider providerTrueFalse
+     */
+    public function testColumnIssue($is_pure)
+    {
+        /**
+         * Map of lines => columns
+         */
+        $expectations = [
+            2 => 3,
+            3 => 10,
+            4 => 11,
+            5 => 13,
+            6 => 12
+        ];
+        
+        $Formatter = $this->createFormatter($is_pure);
+        $Result = $Formatter->formatFile(__DIR__ . self::ORIGINAL . 'columns.php');
+        $issues = $Result->getIssues();
+        $this->assertNotEmpty($issues);
+        foreach ($expectations as $line => $column)
+        {
+            $message = current($issues);
+            next($issues);
+            $this->assertStringEndsWith("line $line column $column", $message);
+        }
+    }
+    
+    public static function providerTrueFalse()
+    {
+        return [
+            'Pure' => [true],
+            'Extension' => [false]
+        ];
     }
 }
