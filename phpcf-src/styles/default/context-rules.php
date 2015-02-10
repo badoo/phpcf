@@ -214,6 +214,7 @@ $fsm_context_rules_class = [
         ';' => -1,
     ],
     'CTX_CLASS_CONST_NL' => [
+        'T_DOUBLE_COLON' => ['CTX_DOUBLE_COLON'],
         ';' => ['NOW' => 'CTX_CLASS_CONST_NL_END', 'NEXT' => -1]
     ],
     'CTX_CLASS_VARIABLE_D' => [

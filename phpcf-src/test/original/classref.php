@@ -17,3 +17,10 @@ class One
     const A = One::
     CLASS;
 }
+
+class Ololo
+{
+    const
+        ROFL = One
+    ::class;
+}
