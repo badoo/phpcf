@@ -108,7 +108,7 @@ $controls = [
         ],
     ],
     'T_CLASS T_INTERFACE T_TRAIT' => [
-        'CTX_DOUBLE_COLON' => [
+        'CTX_DOUBLE_COLON CTX_CASE_D CTX_CASE_FIRST_D CTX_CASE_MULTI_D' => [
             PHPCF_KEY_DESCR_LEFT => 'Nothing before "class" in class reference call',
             PHPCF_KEY_LEFT => PHPCF_EX_DELETE_SPACES,
         ],
