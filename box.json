@@ -1,0 +1,17 @@
+{
+    "finder": [
+        {
+            "name": "*.php",
+            "exclude": [
+                "README.ru.md",
+                "README.md",
+                "phpcf"
+            ],
+            "in": "src"
+        }
+    ],
+    "git-version": "git_tag",
+    "main": "src/phpcf.php",
+    "output": "phpcf.phar",
+    "stub": true
+}
