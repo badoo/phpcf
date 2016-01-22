@@ -48,11 +48,8 @@ $fsm_context_rules_switch = [
     'CTX_SWITCH_BLOCK' => [
         'T_CASE T_DEFAULT'    => ['CTX_CASE_D'],
     ] + $fsm_generic_code_block_rules,
-    'CTX_CASE_D CTX_CASE_FIRST_D CTX_NOBREAK_CASE_D' => [
-        ': ;' => 'CTX_CASE_MULTI_COLON',
-    ],
-    'CTX_CASE_MULTI_D' => [
-        ': ;' => 'CTX_CASE_MULTI_COLON',
+    'CTX_CASE_D CTX_CASE_FIRST_D CTX_NOBREAK_CASE_D CTX_CASE_MULTI_D' => [
+        ': ;' => ['NOW' => 'CTX_SWITCH_KEYWORD', 'NEXT' => 'CTX_CASE_MULTI_COLON'],
     ],
     'CTX_CASE_MULTI_COLON' => [
         'T_CASE T_DEFAULT' => 'CTX_CASE_MULTI_D',

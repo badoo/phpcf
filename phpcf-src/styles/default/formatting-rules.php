@@ -244,16 +244,10 @@ $controls = [
             PHPCF_KEY_DESCR_RIGHT => 'nothing after ";" on the same line',
             PHPCF_KEY_RIGHT => PHPCF_EX_CHECK_NL,
         ],
-        'CTX_CASE_COLON' => [
+        'CTX_SWITCH_KEYWORD' => [
             PHPCF_KEY_DESCR_LEFT => 'Nothing before ";" in "case;"',
             PHPCF_KEY_LEFT => PHPCF_EX_DELETE_SPACES,
             PHPCF_KEY_DESCR_RIGHT => 'nothing after "case;" on the same line an no empty lines',
-            PHPCF_KEY_RIGHT => [PHPCF_EX_INCREASE_INDENT, PHPCF_EX_SHRINK_NLS],
-        ],
-        'CTX_CASE_MULTI_COLON' => [
-            PHPCF_KEY_DESCR_LEFT => 'Nothing before ";" in "case;" (multi colon)',
-            PHPCF_KEY_LEFT => PHPCF_EX_DELETE_SPACES,
-            PHPCF_KEY_DESCR_RIGHT => 'nothing after "case;" on the same line an no empty lines (multi colon)',
             PHPCF_KEY_RIGHT => [PHPCF_EX_INCREASE_INDENT, PHPCF_EX_SHRINK_NLS],
         ],
     ],
@@ -436,7 +430,7 @@ $controls = [
             PHPCF_KEY_DESCR_RIGHT => 'Nothing after ":"',
             PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES,
         ],
-        'CTX_CASE_COLON' => [
+        'CTX_SWITCH_KEYWORD' => [
             PHPCF_KEY_DESCR_LEFT => 'Nothing before ":" in "case:"',
             PHPCF_KEY_LEFT => PHPCF_EX_DELETE_SPACES,
             PHPCF_KEY_DESCR_RIGHT => 'nothing after "case:" on the same line an no empty lines',
