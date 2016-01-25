@@ -1,11 +1,13 @@
 phpcf
 =====
 
-Formatter was created in order to basically change the whitespace characters: line breaks, indentation, spaces around operators, etc. Thus, phpcf not replace any other similar utilities, such as the aforementioned PHP Code Sniffer and PHP Coding Standards Fixer (http://cs.sensiolabs.org) by Fabien Potentsera. It complements them, doing the "dirty work" for the correct placement of spaces and line breaks in the file. It is important to note that our utility allows for the formatting of the original file and change only those spaces that do not conform to the selected standard (unlike some other solutions that are first removed all whitespace tokens, and then start formatting).
+The formatter was created to basically only modify whitespaces, for example line feed, tabs, spaces, etc. It means that phpcf does not replace similar utilities like PHP Code Sniffer (phpcs) or PHP Coding Standards Fixer (http://cs.sensiolabs.org) by Fabien Potencier. The utility supplements others and does all the "dirty work" with whitespace characters. It is worth noting that our utility respects the initial file formatting and only changes whitespace characters that do not follow the chosen ruleset (some utilities remove all whitespace first and reconstruct file from scratch, which is not necessarily what people want).
 
-The utility is extensible and supports an arbitrary set of styles. It can be quite easy to define your formatting style that will implement a different standard, different from ours (coding standard in our company is very close to the PSR).
+Our utility is extensible and supports arbitrary style sets. You can define your own formatting style pretty easily to replace Badoo formatting standard that is a bit different from PSR.
 
-Example (command "php apply <filename>" specified file formats, and "phpcf check <filename>" check formatting and returns a non-zero exit-code in case of unformatted fragments):
+Below is a little usage example.
+ - "phpcf apply <filename>" formats the specified file
+ - "phpcf check <filename>" checks that formatting is correct and returns non-zero exit code when file is not formatted properly
 
 ```
 $ cat minifier.php
@@ -31,11 +33,10 @@ minifier.php does not need formatting
 0
 ```
 
-
-In addition to formatting the whole file, our utility is also able to format the file. To do this, you need to specify the range of line numbers separated by a colon:
+Our utility is also capable of formatting part of file. To do so, you need to specify line number ranges after a colon:
 
 ```
-$ cat zebra.php
+$ cat zebra.php 
 <?php
 echo "White "."strip".PHP_EOL;
 echo "Black "."strip".PHP_EOL; // not formatted
@@ -44,7 +45,7 @@ echo "Arse".PHP_EOL;
 $ phpcf apply zebra.php:1-2,4
 zebra.php formatted successfully
 
-$ cat zebra.php
+$ cat zebra.php 
 <?php
 echo "White " . "strip" . PHP_EOL;
 echo "Black "."strip".PHP_EOL; // not formatted
@@ -60,6 +61,12 @@ $ echo $?
 1
 ```
 
-Even though there is a utility written in PHP, the file format of most runs in a split second. But we have a large repository of code and many, so we wrote an extension that, when connected, increases the productivity of a hundred times: all our repository 2 million lines formatted for 8 seconds on the "notebook» Core i7. To use the extension is required to collect it from the directory "ext /", set to include "enable_dl = On" in php.ini or register it as extension.
+Even though our utility is written in PHP most files are formatted in a fraction of a second. But in Badoo we have a huge repository that contains millions SLOC, so we wrote a PHP extension that increases formatter performance 100x. All our repository (which is 2 million SLOC at the moment of writing this README) is formatted in 8 seconds on a single i7 core. In order to use the extension you need to compile it from "phpcf-src/ext" folder using "phpize; ./configure; make; make install" and either put "enable_dl = On" in your php.ini or put "extension=phpcf.so" there.
 
-I would like to emphasize once again that the php cf above all whitespace changes and knows how to make a simple conversion of the code, for example, to replace a short opening tag on long or remove the last closing tag of the file. In addition, phpcf can automatically correct the Cyrillic alphabet in the names of functions in the English characters. Also not start moving expression aligned manually via gaps. This is because of the architecture - formatter operates as a state machine with rules set by the user, rather than as a set of "zahardkozhennyh" substitutions (formatter comes with a "default config" relevant to our formatting rules). Therefore, if you want to automatically replace "var" in the "public" or similar items, we recommend to pay attention to PHP-CS-Fixer - he pays little attention to whitespace (unlike phpcf), but is able to rewrite tokens.
+It is worth noting again that phpcf is designed to only change whitespace characters and to do the most simple tasks such as:
+ - replacing "<?" with "<?php"
+ - removing extra closing tag from the end of file
+ - change cyrillic letters to english in function names
+ - expressions that are aligned manually using spaces are not touched
+
+The formatter works as a finite state machine with rules that are set by user instead of using hard-coded replacements. We supply the default config that follows Badoo formatting rules. So if you would like to get automatic "var" -> "public" replacement or similar we suggest looking at PHP-CS-Fixer. The latter does not really touch whitespace characters but it can do much more sophisticated replacements than our utility.
