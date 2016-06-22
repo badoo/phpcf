@@ -1,6 +1,8 @@
 phpcf
 =====
 
+**If you need a formatter with PHP7 support, see [here](https://github.com/badoo/phpcf/tree/php7)**
+
 The formatter was created to basically only modify whitespaces, for example line feed, tabs, spaces, etc. It means that phpcf does not replace similar utilities like PHP Code Sniffer (phpcs) or PHP Coding Standards Fixer (http://cs.sensiolabs.org) by Fabien Potencier. The utility supplements others and does all the "dirty work" with whitespace characters. It is worth noting that our utility respects the initial file formatting and only changes whitespace characters that do not follow the chosen ruleset (some utilities remove all whitespace first and reconstruct file from scratch, which is not necessarily what people want).
 
 Our utility is extensible and supports arbitrary style sets. You can define your own formatting style pretty easily to replace Badoo formatting standard that is a bit different from PSR.
