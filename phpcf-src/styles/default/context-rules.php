@@ -8,6 +8,7 @@ $fsm_parenthesis_rules = [
 
 $fsm_inline_rules = $fsm_parenthesis_rules + [
     '?'                    => ['CTX_TERNARY_BEGIN'],
+    'T_COALESCE'           => ['NOW' => ['CTX_TERNARY_OPERATOR'], 'NEXT' => -1],
     'T_OBJECT_OPERATOR $'  => ['CTX_INLINE_BRACE_BEGIN'],
     $fsm_nl_tokens         => ['CTX_INLINE_FIRST_NL'],
     'T_ARRAY'              => ['CTX_ARRAY'],
@@ -18,6 +19,7 @@ $fsm_inline_rules = $fsm_parenthesis_rules + [
     'T_ANONFUNC_LONG'      => ['CTX_ANONFUNC_LONG_D'],
     'T_FUNCTION_NAME'      => ['CTX_FUNCTION_CALL_BEGIN'],
     'T_DOUBLE_COLON'       => ['CTX_DOUBLE_COLON'],
+    'T_NEW'                => ['CTX_NEW'],
 ];
 
 $fsm_generic_code_rules = [
@@ -34,6 +36,7 @@ $fsm_generic_code_rules = [
     'T_ELSE'            => ['CTX_ELSE'],
     'T_CASE T_DEFAULT'  => ['CTX_CASE_FIRST_D'],
     'T_DOUBLE_COLON'    => ['CTX_DOUBLE_COLON'],
+    
 ] + $fsm_inline_rules;
 
 $fsm_generic_code_block_rules = $fsm_generic_code_rules + [
@@ -74,8 +77,8 @@ $fsm_context_rules_loops = [
         ';' => -1
     ] + $fsm_inline_rules,
     'CTX_FOREACH' => [
-        '{'   => 'CTX_GENERIC_BLOCK',
-        '{_EMPTY'   => 'CTX_EMPTY_BLOCK_END',
+        '{' => 'CTX_GENERIC_BLOCK',
+        '{_EMPTY' => 'CTX_EMPTY_BLOCK_END',
         '; :' => -1,
     ] + $fsm_inline_rules,
     'CTX_FOR' => [
@@ -161,6 +164,11 @@ $fsm_context_rules_class = [
         '{' => ['NOW' => 'CTX_CLASS_D', 'NEXT' => 'CTX_CLASS'],
         '{_EMPTY' => 'CTX_CLASS_EMPTY',
     ],
+    'CTX_CLASS_D_ANON' => [
+        '{' => ['NOW' => 'CTX_CLASS_D_ANON', 'NEXT' => 'CTX_CLASS'],
+        '(' => ['NOW' => ['CTX_FUNCTION_CALL_BEGIN'], 'NEXT' => 'CTX_FUNCTION_PARAMS'],
+        '{_EMPTY' => 'CTX_CLASS_EMPTY',
+    ],
     'CTX_CLASS_EMPTY' => [
         '}' => ['NOW' => 'CTX_CLASS_EMPTY', 'NEXT' => -1],
     ],
@@ -205,15 +213,15 @@ $fsm_context_rules_class = [
     'CTX_CLASS_CONST_D_NL' => [
         'T_STRING' => 'CTX_CLASS_CONST_NL',
         ';' => ['NOW' => 'CTX_CLASS_CONST_NL_END', 'NEXT' => -1]
-    ],
+    ] + $fsm_inline_rules,
     'CTX_CLASS_CONST' => [
         'T_DOUBLE_COLON' => ['CTX_DOUBLE_COLON'],
         ';' => -1,
-    ],
+    ] + $fsm_inline_rules,
     'CTX_CLASS_CONST_NL' => [
         'T_DOUBLE_COLON' => ['CTX_DOUBLE_COLON'],
         ';' => ['NOW' => 'CTX_CLASS_CONST_NL_END', 'NEXT' => -1]
-    ],
+    ] + $fsm_inline_rules,
     'CTX_CLASS_VARIABLE_D' => [
         ';' => -1,
     ] + $fsm_inline_rules,
@@ -225,6 +233,7 @@ $fsm_context_rules_class = [
         ';' => -1,
         '{' => ['NOW' => 'CTX_CLASS_METHOD_D', 'NEXT' => 'CTX_CLASS_METHOD'],
         '{_EMPTY' => 'CTX_CLASS_METHOD_EMPTY',
+        ':'       => ['CTX_METHOD_RETURN_D']
     ] + $fsm_inline_rules,
     'CTX_CLASS_METHOD_LONG_D' => [
         '( (_EMPTY' => ['CTX_METHOD_LONG_D_PAR'],
@@ -238,6 +247,16 @@ $fsm_context_rules_class = [
         '(_LONG'  => 'CTX_FUNCTION_LONG_D',
         '{'       => ['NOW' => 'CTX_FUNCTION_D', 'NEXT' => 'CTX_FUNCTION'],
         '{_EMPTY' => 'CTX_EMPTY_BLOCK_END',
+        ':'       => ['CTX_FUNCTION_RETURN_D'],
+    ],
+    'CTX_FUNCTION_RETURN_D' => [
+        '(_LONG {' => ['NOW' => -1, 'NEXT' => 'CTX_FUNCTION'],
+        '{_EMPTY' => ['REPLACE' => [-2, ['CTX_EMPTY_BLOCK_END']]],
+    ],
+    'CTX_METHOD_RETURN_D' => [
+        '(_LONG' => ['NOW' => -1, 'NEXT' => 'CTX_CLASS_METHOD_LONG_D'],
+        '{' => ['REPLACE' => [-2, ['CTX_CLASS_METHOD_D']]],
+        ';' => -2,
     ],
     'CTX_EMPTY_BLOCK_END' => [
         '}' => ['NOW' => 'CTX_EMPTY_BLOCK_END', 'NEXT' => -1],
@@ -247,6 +266,7 @@ $fsm_context_rules_class = [
         '{' => ['NOW' => 'CTX_FUNCTION_LONG_D', 'NEXT' => 'CTX_FUNCTION'],
         '( (_EMPTY' => ['CTX_FUNCTION_LONG_D_PAR'],
         '{_EMPTY' => 'CTX_EMPTY_BLOCK_END',
+        ':'       => ['CTX_FUNCTION_RETURN_D'],
     ] + $fsm_inline_rules,
     'CTX_FUNCTION_LONG_D_PAR' => [
         ')' => ['NOW' => 'CTX_FUNCTION_LONG_D_PAR', 'NEXT' => -1],
@@ -284,6 +304,13 @@ $fsm_context_rules_brace_begin = [
     '{'               => 'CTX_INLINE_BRACE',
     'T_FUNCTION_NAME' => 'CTX_FUNCTION_CALL_BEGIN',
     PHPCF_KEY_ALL     => -1, // it is not Class expression static call, go away
+];
+
+$fsm_context_rules_new = [
+    'CTX_NEW' => [
+        'T_CLASS' => 'CTX_CLASS_D_ANON',
+        PHPCF_KEY_ALL => -1,
+    ],
 ];
 
 $fsm_context_rules = [
@@ -324,6 +351,7 @@ $fsm_context_rules += $fsm_context_rules_conditions;
 $fsm_context_rules += $fsm_context_rules_loops;
 $fsm_context_rules += $fsm_context_rules_switch;
 $fsm_context_rules += $fsm_context_rules_array;
+$fsm_context_rules += $fsm_context_rules_new;
 $fsm_context_rules += $fsm_context_rules_class;
 
 return $fsm_context_rules;

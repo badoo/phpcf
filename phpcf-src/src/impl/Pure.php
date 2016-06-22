@@ -111,7 +111,8 @@ class Pure implements \Phpcf\IFormatter
         '{'                   => 'tokenHookOpenCurly',
         '['                   => 'tokenHookSquareBracket',
         T_ARRAY               => 'tokenHookArray',
-        T_VARIABLE            => 'tokenHookVariable'
+        T_VARIABLE            => 'tokenHookVariable',
+        T_YIELD_FROM          => 'tokenHookYieldFrom',
     ];
 
     /**
@@ -481,6 +482,42 @@ class Pure implements \Phpcf\IFormatter
                 PHPCF_KEY_LINE  => $this->current_line,
             ]
         ];
+    }
+
+    /**
+     * Hook rewrites T_YIELD_FROM into T_YIELD and T_FROM
+     */
+    protected function tokenHookYieldFrom($idx_tokens, $i_value)
+    {
+        $can_change_tokens = !isset($this->lines) || isset($this->lines[$this->current_line]);
+
+        if (!$can_change_tokens) {
+            return [
+                [
+                    PHPCF_KEY_CODE => $i_value[0],
+                    PHPCF_KEY_TEXT => $i_value[1],
+                    PHPCF_KEY_LINE => $this->current_line,
+                ]
+            ];
+        } else {
+            return [
+                [
+                    PHPCF_KEY_CODE => 'T_YIELD',
+                    PHPCF_KEY_TEXT => 'yield',
+                    PHPCF_KEY_LINE => $this->current_line,
+                ],
+                [
+                    PHPCF_KEY_CODE => 'T_WHITESPACE',
+                    PHPCF_KEY_TEXT => ' ',
+                    PHPCF_KEY_LINE => $this->current_line,
+                ],
+                [
+                    PHPCF_KEY_CODE => 'T_FROM',
+                    PHPCF_KEY_TEXT => 'from',
+                    PHPCF_KEY_LINE => $this->current_line,
+                ],
+            ];
+        }
     }
 
     /**

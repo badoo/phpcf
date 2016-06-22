@@ -155,7 +155,14 @@ class PHPCFTest extends PHPUnit_Framework_TestCase
                 if ($file[0] == '.') {
                     continue;
                 }
-
+                
+                // support for major version change
+                if (substr($file, 1, 1) == '-') {
+                    if (PHP_MAJOR_VERSION < substr($file, 0, 1)) {
+                        continue;
+                    }
+                }
+                
                 $files[$file] = [$file];
             }
             closedir($dh);
