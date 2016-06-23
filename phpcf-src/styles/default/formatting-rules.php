@@ -633,6 +633,8 @@ $controls = [
 
     'T_OPEN_TAG' => [
         PHPCF_KEY_ALL => [
+            PHPCF_KEY_DESCR_LEFT => 'no whitespace before open tag',
+            PHPCF_KEY_LEFT => PHPCF_EX_DELETE_SPACES,
             PHPCF_KEY_DESCR_RIGHT => 'nothing after opening tag on the same line',
             PHPCF_KEY_RIGHT => PHPCF_EX_CHECK_NL_STRONG,
         ]

@@ -113,6 +113,7 @@ class Pure implements \Phpcf\IFormatter
         T_ARRAY               => 'tokenHookArray',
         T_VARIABLE            => 'tokenHookVariable',
         T_YIELD_FROM          => 'tokenHookYieldFrom',
+        T_INLINE_HTML         => 'tokenHookInlineHTML',
     ];
 
     /**
@@ -1334,6 +1335,31 @@ class Pure implements \Phpcf\IFormatter
             [
                 PHPCF_KEY_CODE => '?',
                 PHPCF_KEY_TEXT => '?',
+                PHPCF_KEY_LINE => $this->current_line,
+            ]
+        ];
+    }
+
+    /**
+     * Rewrite whitespace-only HTML to T_WHITESPACE so that we can apply formatting rules to it
+     *
+     * @param $idx_tokens
+     * @param $i_value
+     * @return array
+     */
+    private function tokenHookInlineHTML($idx_tokens, $i_value)
+    {
+        $this->current_line = $i_value[2];
+        $token = is_array($i_value) ? $idx_tokens[$i_value[0]] : $i_value;
+
+        if (preg_match('/^\\s+$/s', $i_value[1])) {
+            $token = 'T_WHITESPACE';
+        }
+
+        return [
+            [
+                PHPCF_KEY_CODE => $token,
+                PHPCF_KEY_TEXT => $i_value[1],
                 PHPCF_KEY_LINE => $this->current_line,
             ]
         ];
