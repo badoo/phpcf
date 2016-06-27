@@ -228,12 +228,19 @@ $fsm_context_rules_class = [
     'CTX_CLASS_VARIABLE_D_NL' => [
         ';' => ['NOW' => 'CTX_CLASS_VARIABLE_D_NL_END', 'NEXT' => -1]
     ] + $fsm_inline_rules,
-    'CTX_CLASS_METHOD_D CTX_CLASS_METHOD_D_NL' => [
+    'CTX_CLASS_METHOD_D' => [
         '(_LONG' => 'CTX_CLASS_METHOD_LONG_D',
         ';' => -1,
         '{' => ['NOW' => 'CTX_CLASS_METHOD_D', 'NEXT' => 'CTX_CLASS_METHOD'],
         '{_EMPTY' => 'CTX_CLASS_METHOD_EMPTY',
-        ':'       => ['CTX_METHOD_RETURN_D']
+        ': T_ARRAY' => ['NOW' => 'CTX_METHOD_RETURN_D', 'NEXT' => 'CTX_CLASS_METHOD_D'],
+    ] + $fsm_inline_rules,
+    'CTX_CLASS_METHOD_D_NL' => [
+        '(_LONG' => 'CTX_CLASS_METHOD_LONG_D',
+        ';' => -1,
+        '{' => ['NOW' => 'CTX_CLASS_METHOD_D', 'NEXT' => 'CTX_CLASS_METHOD'],
+        '{_EMPTY' => 'CTX_CLASS_METHOD_EMPTY',
+        ': T_ARRAY' => ['NOW' => 'CTX_METHOD_RETURN_D', 'NEXT' => 'CTX_CLASS_METHOD_D_NL']
     ] + $fsm_inline_rules,
     'CTX_CLASS_METHOD_LONG_D' => [
         '( (_EMPTY' => ['CTX_METHOD_LONG_D_PAR'],
@@ -252,11 +259,6 @@ $fsm_context_rules_class = [
     'CTX_FUNCTION_RETURN_D' => [
         '(_LONG {' => ['NOW' => -1, 'NEXT' => 'CTX_FUNCTION'],
         '{_EMPTY' => ['REPLACE' => [-2, ['CTX_EMPTY_BLOCK_END']]],
-    ],
-    'CTX_METHOD_RETURN_D' => [
-        '(_LONG' => ['NOW' => -1, 'NEXT' => 'CTX_CLASS_METHOD_LONG_D'],
-        '{' => ['REPLACE' => [-2, ['CTX_CLASS_METHOD_D']]],
-        ';' => -2,
     ],
     'CTX_EMPTY_BLOCK_END' => [
         '}' => ['NOW' => 'CTX_EMPTY_BLOCK_END', 'NEXT' => -1],
