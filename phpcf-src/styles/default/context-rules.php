@@ -7,19 +7,19 @@ $fsm_parenthesis_rules = [
 ];
 
 $fsm_inline_rules = $fsm_parenthesis_rules + [
-    '?'                    => ['CTX_TERNARY_BEGIN'],
-    'T_COALESCE'           => ['NOW' => ['CTX_TERNARY_OPERATOR'], 'NEXT' => -1],
-    'T_OBJECT_OPERATOR $'  => ['CTX_INLINE_BRACE_BEGIN'],
-    $fsm_nl_tokens         => ['CTX_INLINE_FIRST_NL'],
-    'T_ARRAY'              => ['CTX_ARRAY'],
-    '['                    => ['CTX_GENERIC_SQUARE_PARENTHESIS'],
-    'T_ARRAY_SHORT'        => ['CTX_ARRAY_SHORT'],
-    'T_ARRAY_SHORT_ML'     => ['CTX_ARRAY_SHORT_ML'],
-    'T_ANONFUNC'           => ['CTX_ANONFUNC_D'],
-    'T_ANONFUNC_LONG'      => ['CTX_ANONFUNC_LONG_D'],
-    'T_FUNCTION_NAME'      => ['CTX_FUNCTION_CALL_BEGIN'],
-    'T_DOUBLE_COLON'       => ['CTX_DOUBLE_COLON'],
-    'T_NEW'                => ['CTX_NEW'],
+    '?'                       => ['CTX_TERNARY_BEGIN'],
+    'T_COALESCE'              => ['NOW' => ['CTX_TERNARY_OPERATOR'], 'NEXT' => -1],
+    'T_OBJECT_OPERATOR $'     => ['CTX_INLINE_BRACE_BEGIN'],
+    $fsm_nl_tokens            => ['CTX_INLINE_FIRST_NL'],
+    'T_ARRAY'                 => ['CTX_ARRAY'],
+    '['                       => ['CTX_GENERIC_SQUARE_PARENTHESIS'],
+    'T_ARRAY_SHORT'           => ['CTX_ARRAY_SHORT'],
+    'T_ARRAY_SHORT_ML'        => ['CTX_ARRAY_SHORT_ML'],
+    'T_ANONFUNC'              => ['CTX_ANONFUNC_D'],
+    'T_ANONFUNC_LONG'         => ['CTX_ANONFUNC_LONG_D'],
+    'T_FUNCTION_NAME T_UNSET' => ['CTX_FUNCTION_CALL_BEGIN'],
+    'T_DOUBLE_COLON'          => ['CTX_DOUBLE_COLON'],
+    'T_NEW'                   => ['CTX_NEW'],
 ];
 
 $fsm_generic_code_rules = [
@@ -303,14 +303,15 @@ $fsm_context_rules_class = [
 ];
 
 $fsm_context_rules_brace_begin = [
-    '{'               => 'CTX_INLINE_BRACE',
-    'T_FUNCTION_NAME' => 'CTX_FUNCTION_CALL_BEGIN',
-    PHPCF_KEY_ALL     => -1, // it is not Class expression static call, go away
+    '{'                       => 'CTX_INLINE_BRACE',
+    'T_FUNCTION_NAME T_UNSET' => 'CTX_FUNCTION_CALL_BEGIN',
+    PHPCF_KEY_ALL             => -1, // it is not Class expression static call, go away
 ];
 
 $fsm_context_rules_new = [
     'CTX_NEW' => [
         'T_CLASS' => 'CTX_CLASS_D_ANON',
+        'T_FUNCTION_NAME' => 'CTX_FUNCTION_CALL_BEGIN', // new ClassName(...), throw new Exception(...)
         PHPCF_KEY_ALL => -1,
     ],
 ];
