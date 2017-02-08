@@ -2,7 +2,6 @@
 /**
  * Test for expressions in constant definitions
  */
-
 class One
 {
     const TEST = [

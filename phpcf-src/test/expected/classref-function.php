@@ -2,7 +2,6 @@
 /**
  * Test for class reference inside arrays
  */
-
 class Test
 {
     public static function provider_42h()

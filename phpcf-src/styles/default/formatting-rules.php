@@ -137,6 +137,12 @@ $controls = [
             PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES,
         ]
     ],
+    'T_DOC_COMMENT_B4_CLASS' => [
+        PHPCF_KEY_ALL => [
+            PHPCF_KEY_DESCR_RIGHT => 'Class to start on a new line after doc block comment and no empty string before class definition',
+            PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_NLS_STRONG,
+        ],
+    ],
     'T_NAMESPACE' => [
         PHPCF_KEY_ALL => [
             PHPCF_KEY_DESCR_LEFT => 'Nothing before "namespace"',

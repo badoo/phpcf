@@ -76,6 +76,7 @@ class Pure implements \Phpcf\IFormatter
      */
     protected $token_hook_callbacks = [
         // hook should return all parsed tokens
+        T_DOC_COMMENT         => 'tokenHookClassDoc',
         T_START_HEREDOC       => 'tokenHookHeredoc',
         '.'                   => 'tokenHookBinary',
         T_OBJECT_OPERATOR     => 'tokenHookBinary',
@@ -685,6 +686,35 @@ class Pure implements \Phpcf\IFormatter
             [
                 PHPCF_KEY_CODE => 'T_STRING',
                 PHPCF_KEY_TEXT => 'static',
+                PHPCF_KEY_LINE => $this->current_line,
+            ]
+        ];
+    }
+
+    /**
+     * Check if there is class definition after doc block
+     * @param $idx_tokens
+     * @param $i_value
+     * @return array
+     */
+    protected function tokenHookClassDoc($idx_tokens, $i_value)
+    {
+        $token = $idx_tokens[$i_value[0]];
+        $next_pos = key($this->tokens);
+        $this->current_line = $i_value[2];
+
+        if (isset($this->tokens[$next_pos]) && $this->tokens[$next_pos][0] === T_WHITESPACE) {
+            $possible_class_pos = $next_pos + 1;
+        } else {
+            $possible_class_pos = $next_pos;
+        }
+        if (isset($this->tokens[$possible_class_pos]) && $this->tokens[$possible_class_pos][0] === T_CLASS) {
+            $token .= "_B4_CLASS";
+        }
+        return [
+            [
+                PHPCF_KEY_CODE => $token ,
+                PHPCF_KEY_TEXT => $i_value[1],
                 PHPCF_KEY_LINE => $this->current_line,
             ]
         ];

@@ -3,7 +3,6 @@
 /**
  * Test for correct formatting of class-reference
  */
-
 class ClassName {}
 
 echo ClassName::class;
