@@ -9,8 +9,7 @@ class PHPCFTest extends PHPUnit_Framework_TestCase
 {
     private static $files;
 
-    private $FormatterPure;
-    private $FormatterExtension;
+    private $Formatter;
 
     const ORIGINAL = "/original/";
     const EXPECTED = "/expected/";
@@ -39,46 +38,12 @@ class PHPCFTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test the pure implementation behaviour
+     * Test the PHP implementation behaviour
      * @dataProvider providerFiles
      */
-    public function testPure($file)
+    public function testFiles($file)
     {
-        $this->execTest($this->getFormatter(true), $file);
-    }
-
-    /**
-     * Test the pure implementation behaviour
-     * @dataProvider providerFiles
-     */
-    public function testExtension($file)
-    {
-        try {
-            $Formatter = $this->getFormatter(false);
-        } catch (\Exception $Error) {
-            $this->markTestSkipped($Error->getMessage());
-        }
-        $this->execTest($Formatter, $file);
-    }
-
-    /**
-     * Test, that extension usage does not affect different instances
-     */
-    public function testExtensionMutual()
-    {
-        $files = self::getFiles();
-
-        try {
-            $FormatterOne = $this->createFormatter(false);
-            $FormatterTwo = $this->createFormatter(false);
-        } catch (\Exception $Error) {
-            $this->markTestSkipped($Error->getMessage());
-        }
-
-        foreach ($files as $index => $file) {
-            $Formatter = $index % 2 == 0 ? $FormatterOne : $FormatterTwo;
-            $this->execTest($Formatter, $file[0]);
-        }
+        $this->execTest($this->getFormatter(), $file);
     }
 
     private function execTest(\Phpcf\Formatter $Formatter, $file)
@@ -106,30 +71,20 @@ class PHPCFTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param $pure
      * @return \Phpcf\Formatter
      */
-    private function getFormatter($pure)
+    private function getFormatter()
     {
-        if ($pure && $this->FormatterPure) {
-            return $this->FormatterPure;
-        } else if (!$pure && $this->FormatterExtension) {
-            return $this->FormatterExtension;
+        if (!$this->Formatter) {
+            $this->Formatter = $this->createFormatter();
         }
 
-        $Formatter = $this->createFormatter($pure);
-        if ($pure) {
-            $this->FormatterPure = $Formatter;
-        } else {
-            $this->FormatterExtension = $Formatter;
-        }
-        return $Formatter;
+        return $this->Formatter;
     }
 
-    private function createFormatter($pure)
+    private function createFormatter()
     {
         $Options = new \Phpcf\Options();
-        $Options->usePure($pure);
         $Options->toggleSniff(true);
         return new \Phpcf\Formatter($Options);
     }
@@ -174,9 +129,8 @@ class PHPCFTest extends PHPUnit_Framework_TestCase
 
     /**
      * Test, that issues ends with correct message
-     * @dataProvider providerTrueFalse
      */
-    public function testColumnIssue($is_pure)
+    public function testColumnIssue()
     {
         /**
          * Map of lines => columns
@@ -189,7 +143,7 @@ class PHPCFTest extends PHPUnit_Framework_TestCase
             6 => 12
         ];
         
-        $Formatter = $this->createFormatter($is_pure);
+        $Formatter = $this->createFormatter();
         $Result = $Formatter->formatFile(__DIR__ . self::ORIGINAL . 'columns.php');
         $issues = $Result->getIssues();
         $this->assertNotEmpty($issues);
@@ -199,13 +153,5 @@ class PHPCFTest extends PHPUnit_Framework_TestCase
             next($issues);
             $this->assertStringEndsWith("line $line column $column", $message);
         }
-    }
-    
-    public static function providerTrueFalse()
-    {
-        return [
-            'Pure' => [true],
-            'Extension' => [false]
-        ];
     }
 }

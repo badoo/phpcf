@@ -17,7 +17,7 @@ class Formatter
      */
     private $Implementation;
 
-    const IMPL_CLASS = "\\Phpcf\\Impl\\Pure";
+    const IMPL_CLASS = "\\Phpcf\\Impl\\Formatter";
 
     public function __construct(Options $Options)
     {
@@ -35,9 +35,7 @@ class Formatter
         $custom_style_dir = $this->Options->getCustomStyle();
         $custom_formatter_class = null;
 
-        $use_pure = false;
         if (!empty($custom_style_dir)) {
-
             // check, which dir is given - relative, or absolute
             if (strpos($custom_style_dir, DIRECTORY_SEPARATOR) === false) {
                 $custom_style_dir = __DIR__ . '/../styles/' . $custom_style_dir . '/';
@@ -63,36 +61,11 @@ class Formatter
                 } else if (!in_array(ltrim(self::IMPL_CLASS, '\\'), class_parents($custom_formatter_class, true))) {
                     throw new \InvalidArgumentException("Class '{$custom_formatter_class}' must be instanceof '" . self::IMPL_CLASS . "'");
                 }
-                $use_pure = true;
             }
         }
 
-        $use_pure = $this->Options->getPureBehaviour() || $use_pure;
-        if (!$use_pure) {
-            try {
-                \Phpcf\Helper::loadExtension('phpcf');
-                if (function_exists('phpcf_get_version')) {
-                    $version = phpcf_get_version();
-                    if ($version !== PHPCF_VERSION && !$this->Options->isQuiet()) {
-                        $error_string = "Extension use disabled, version mismatch: '" . PHPCF_VERSION . "' != '$version'";
-                        trigger_error($error_string, E_USER_NOTICE);
-                        $use_pure = true;
-                    }
-                } else {
-                    // old version
-                    $use_pure = true;
-                }
-            } catch (\Exception $Error) {
-                $use_pure = true;
-            }
-        }
-
-        if ($use_pure) {
-            $formatter_class = $custom_formatter_class ? $custom_formatter_class : self::IMPL_CLASS;
-            $this->Implementation = new $formatter_class($fsm_context_rules, $controls, new ExecStat());
-        } else {
-            $this->Implementation = new \Phpcf\Impl\Extension($fsm_context_rules, $controls);
-        }
+        $formatter_class = $custom_formatter_class ? $custom_formatter_class : self::IMPL_CLASS;
+        $this->Implementation = new $formatter_class($fsm_context_rules, $controls, new ExecStat());
 
         if ($this->Options->isCyrillicFilterEnabled()) {
             $this->Implementation->setStringFilter(new \Phpcf\Filter\StringAscii(new \Phpcf\Filter\StringAsciiMapCyr()));

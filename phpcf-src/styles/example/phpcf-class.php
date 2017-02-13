@@ -4,7 +4,7 @@
 /* class must be named as PHPCF_<Style> */
 namespace Phpcf\Impl;
 
-class PHPCF_Example extends Pure
+class PHPCF_Example extends Formatter
 {
     protected function init()
     {

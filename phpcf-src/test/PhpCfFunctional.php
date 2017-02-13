@@ -13,8 +13,6 @@ class PhpCfFunctional extends PHPUnit_Framework_TestCase
     private static $folder;
     private $folder_final;
 
-    private $use_pure = null;
-
     public static function setUpBeforeClass()
     {
         while (!self::$folder) {
@@ -48,9 +46,6 @@ class PhpCfFunctional extends PHPUnit_Framework_TestCase
     private function getExecPath()
     {
         $cmd = 'php ' . realpath(__DIR__ . '/../phpcf.php');
-        if ($this->use_pure) {
-            $cmd .= ' -p ';
-        }
         return $cmd;
     }
 
@@ -109,23 +104,10 @@ class PhpCfFunctional extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Provider for implementation selection
-     */
-    public function providerImplementation()
-    {
-        return [
-            [true], // use native-php  
-            [false],  // use extension
-        ];
-    }
-
-    /**
      * Test, that initial commit does not contain anything to format
-     * @dataProvider providerImplementation 
      */
-    public function testClear($impl)
+    public function testClear()
     {
-        $this->use_pure = $impl;
         $initial_result = $this->callFormatter("check-git");
         $this->assertEquals(0, $initial_result['code']);
         // no any ouput on empty directory
@@ -133,11 +115,9 @@ class PhpCfFunctional extends PHPUnit_Framework_TestCase
 
     /**
      * Test apply of dirty file
-     * @dataProvider providerImplementation
      */
-    public function testDirty($impl)
+    public function testDirty()
     {
-        $this->use_pure = $impl;
         copy(__DIR__ . '/functional_dirty/Test_dirty.php', $this->folder_final . '/Test.php'); // make file dirty
         $res = $this->callFormatter('check-git');
         $this->assertEquals(1, $res['code']); // has errors
@@ -154,11 +134,9 @@ class PhpCfFunctional extends PHPUnit_Framework_TestCase
      * 2.) Change part of file
      * 3.) Run check-git, apply-git, check-git
      * 4.) Make sure, file is identical to expected (partially formatted)
-     * @dataProvider providerImplementation
      */
-    public function testPartialDirty($impl)
+    public function testPartialDirty()
     {
-        $this->use_pure = $impl;
         copy(__DIR__ . '/functional_dirty/Test_new_commit.php', $this->folder_final . '/Test.php'); // make file dirty
         $cmd = 'git commit -a -m "second commit" --no-edit 2>&1';
         $err = exec($cmd, $out, $code);

@@ -5,7 +5,7 @@
  */
 namespace Phpcf\Impl;
 
-class Pure implements \Phpcf\IFormatter
+class Formatter implements \Phpcf\IFormatter
 {
     /**
      * @var Fsm
