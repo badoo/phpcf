@@ -36,7 +36,6 @@ $fsm_generic_code_rules = [
     'T_ELSE'            => ['CTX_ELSE'],
     'T_CASE T_DEFAULT'  => ['CTX_CASE_FIRST_D'],
     'T_DOUBLE_COLON'    => ['CTX_DOUBLE_COLON'],
-    
 ] + $fsm_inline_rules;
 
 $fsm_generic_code_block_rules = $fsm_generic_code_rules + [
@@ -176,7 +175,8 @@ $fsm_context_rules_class = [
         'T_PUBLIC T_PRIVATE T_PROTECTED T_STATIC' => ['CTX_CLASS_DEF'],
         'T_CONST'             => ['CTX_CLASS_CONST_D'],
         'T_FINAL T_ABSTRACT'  => ['CTX_CLASS_DEF'],
-        'T_PUBLIC_NL T_CONST_NL T_PRIVATE_NL T_PROTECTED_NL T_STATIC_NL T_FINAL_NL' => ['CTX_CLASS_DEF_NL'],
+        'T_CONST_NL'          => ['CTX_CLASS_CONST_DEF_NL'],
+        'T_PUBLIC_NL T_PRIVATE_NL T_PROTECTED_NL T_STATIC_NL T_FINAL_NL' => ['CTX_CLASS_DEF_NL'],
         'T_VAR'               => ['CTX_CLASS_VARIABLE_D'],
         'T_FUNCTION'          => ['CTX_CLASS_METHOD_D'],
         '}'                   => -1,
@@ -200,18 +200,28 @@ $fsm_context_rules_class = [
         'T_FUNCTION'      => 'CTX_CLASS_METHOD_D',
         'T_CONST'         => 'CTX_CLASS_CONST_D',
         'T_VARIABLE'      => 'CTX_CLASS_VARIABLE_D',
-        'T_PUBLIC_NL T_CONST_NL T_PRIVATE_NL T_PROTECTED_NL T_STATIC_NL T_FINAL_NL' => 'CTX_CLASS_DEF_NL',
+        'T_CONST_NL'      => 'CTX_CLASS_CONST_DEF_NL',
+        'T_PUBLIC_NL T_PRIVATE_NL T_PROTECTED_NL T_STATIC_NL T_FINAL_NL' => 'CTX_CLASS_DEF_NL',
     ],
     'CTX_CLASS_DEF_NL' => [
         'T_FUNCTION'  => 'CTX_CLASS_METHOD_D_NL',
         'T_STRING'    => 'CTX_CLASS_CONST_D_NL',
         'T_VARIABLE'  => 'CTX_CLASS_VARIABLE_D_NL',
     ],
+    'CTX_CLASS_CONST_DEF_NL' => [
+        'T_STRING' => 'CTX_CLASS_CONST_D_NL',
+        // PHP7 allow to use some keywords as constant name
+        'T_ARRAY T_FUNCTION T_ANONFUNC T_LIST' => 'CTX_CLASS_CONST_D_NL',
+    ],
     'CTX_CLASS_CONST_D' => [
         'T_STRING' => 'CTX_CLASS_CONST',
+        // PHP7 allow to use some keywords as constant name
+        'T_ARRAY T_FUNCTION T_ANONFUNC T_LIST' => 'CTX_CLASS_CONST',
     ],
     'CTX_CLASS_CONST_D_NL' => [
         'T_STRING' => 'CTX_CLASS_CONST_NL',
+        // PHP7 allow to use some keywords as constant name
+        'T_ARRAY T_FUNCTION T_LIST' => 'CTX_CLASS_CONST_NL',
         ';' => ['NOW' => 'CTX_CLASS_CONST_NL_END', 'NEXT' => -1]
     ] + $fsm_inline_rules,
     'CTX_CLASS_CONST' => [

@@ -740,11 +740,22 @@ class Formatter implements \Phpcf\IFormatter
 
         for ($i = $next_pos; $i < count($this->tokens); $i++) {
             $tok = $this->tokens[$i];
+
             // look for whitespace, comment, variable or constant name after, e.g. "private"
             // if nothing was found, then it is end of property def (or real property def did not begin)
-            if ($tok[0] === T_VARIABLE || $tok[0] === T_STRING) $is_property_def = true;
-            else if ($tok[0] !== T_COMMENT && $tok[0] !== T_WHITESPACE) break;
-            if (strpos($tok[1], "\n") !== false) $is_newline = true;
+            if ($tok[0] === T_VARIABLE || $tok[0] === T_STRING) {
+                $is_property_def = true;
+            } else if (($i_value[0] === T_CONST) && ($tok[0] === T_ARRAY || $tok[0] === T_FUNCTION || $tok[0] === T_LIST)) {
+                // PHP7 allow to use some keywords as constant name
+                $is_property_def = true;
+
+            } else if ($tok[0] !== T_COMMENT && $tok[0] !== T_WHITESPACE) {
+                break;
+            }
+
+            if (strpos($tok[1], "\n") !== false) {
+                $is_newline = true;
+            }
         }
 
         if ($is_property_def && $is_newline) $token .= '_NL';
