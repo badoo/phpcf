@@ -38,10 +38,10 @@ class PHPCFTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test the PHP implementation behaviour
+     * Test the implementation behaviour
      * @dataProvider providerFiles
      */
-    public function testFiles($file)
+    public function testAll($file)
     {
         $this->execTest($this->getFormatter(), $file);
     }

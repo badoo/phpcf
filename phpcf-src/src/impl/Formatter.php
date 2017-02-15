@@ -7,6 +7,10 @@ namespace Phpcf\Impl;
 
 class Formatter implements \Phpcf\IFormatter
 {
+    const DEBUG_WIDTH_LINE = 10;
+    const DEBUG_WIDTH_CODE = 30;
+    const DEBUG_WIDTH_TEXT = 30;
+
     /**
      * @var Fsm
      */
@@ -1824,14 +1828,18 @@ class Formatter implements \Phpcf\IFormatter
         $this->setupContext();
         do {
             $cur_token = $this->ptokens[$this->current_pos];
+            $i_line = $cur_token[PHPCF_KEY_LINE];
             $i_code = $cur_token[PHPCF_KEY_CODE];
             $i_text = $cur_token[PHPCF_KEY_TEXT];
 
             if ($this->debug_enabled) {
-                $debug_code = sprintf("%30s", $i_code);
-                $whitespaces = str_repeat(' ', max(0, 30 - strlen($i_text)));
-                $msg  = $debug_code . "     " . $this->humanWhiteSpace($i_text, true) . $whitespaces;
-                $msg .= "     " . $this->FSM->getStackPath();
+                $sp = '     ';
+                $debug_line = sprintf('%' . self::DEBUG_WIDTH_LINE . 's', $i_line);
+                $debug_code = sprintf('%' . self::DEBUG_WIDTH_CODE . 's', $i_code);
+                $debug_text = $this->humanWhiteSpace($i_text, true);
+                $whitespaces = str_repeat(' ', max(0, self::DEBUG_WIDTH_TEXT - strlen($debug_text)));
+
+                $msg  = $debug_line . $sp . $debug_code . $sp . $debug_text . $whitespaces . $sp . $this->FSM->getStackPath();
 
                 fwrite(STDERR, $msg . PHP_EOL);
             }
