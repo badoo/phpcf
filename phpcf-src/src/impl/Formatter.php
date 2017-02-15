@@ -277,10 +277,23 @@ class Formatter implements \Phpcf\IFormatter
             return;
         }
 
-        if (isset($this->lines) && !isset($this->lines[$this->current_line])) {
+        if ($this->shouldIgnoreLine($this->current_line)) {
             return;
         }
         $this->sniff_errors[] = ['line' => $this->current_line, 'descr' => $message];
+    }
+
+    /**
+     * @param int $line
+     * @return bool
+     */
+    protected function shouldIgnoreLine($line)
+    {
+        if (isset($this->lines) && !isset($this->lines[$line])) {
+            return true;
+        }
+
+        return false;
     }
 
     private function countExprLength($found_first_bracket = false, $max_length)
@@ -471,7 +484,7 @@ class Formatter implements \Phpcf\IFormatter
         $token = '(';
         if ($length >= PHPCF_LONG_EXPRESSION_LENGTH) $token = '(_LONG';
 
-        $can_change_tokens = !isset($this->lines) || isset($this->lines[$this->current_line]);
+        $can_change_tokens = !$this->shouldIgnoreLine($this->current_line);
 
         if ($can_change_tokens && $this->isEmptyBody(')')) {
             $token = '(_EMPTY';
@@ -491,7 +504,7 @@ class Formatter implements \Phpcf\IFormatter
      */
     protected function tokenHookYieldFrom($idx_tokens, $i_value)
     {
-        $can_change_tokens = !isset($this->lines) || isset($this->lines[$this->current_line]);
+        $can_change_tokens = !$this->shouldIgnoreLine($this->current_line);
 
         if (!$can_change_tokens) {
             return [
@@ -795,7 +808,7 @@ class Formatter implements \Phpcf\IFormatter
     {
         $this->current_line = $i_value[2];
 
-        $can_change_tokens = !isset($this->lines) || isset($this->lines[$this->current_line]);
+        $can_change_tokens = !$this->shouldIgnoreLine($this->current_line);
         if ($can_change_tokens) {
             $open_tag = "<?php";
             if (rtrim($i_value[1]) !== $open_tag) $this->sniffMessage('Only "<?php" is allowed as open tag');
@@ -826,7 +839,7 @@ class Formatter implements \Phpcf\IFormatter
     protected function tokenHookCloseTag($idx_tokens, $i_value)
     {
         $this->current_line = $i_value[2];
-        $can_change_tokens = !isset($this->lines) || isset($this->lines[$this->current_line]);
+        $can_change_tokens = !$this->shouldIgnoreLine($this->current_line);
 
         if ($can_change_tokens) {
             $is_eof = true;
@@ -1092,7 +1105,7 @@ class Formatter implements \Phpcf\IFormatter
     {
         $token = $idx_tokens[$i_value[0]];
         $this->current_line = $i_value[2];
-        $can_change_tokens = !isset($this->lines) || isset($this->lines[$this->current_line]);
+        $can_change_tokens = !$this->shouldIgnoreLine($this->current_line);
         if ($can_change_tokens) {
             if ($i_value[1][0] == '#') {
                 $this->sniffMessage("Comments starting with '#' are not allowed");
@@ -1384,6 +1397,8 @@ class Formatter implements \Phpcf\IFormatter
     /**
      * Rewrite whitespace-only HTML to T_WHITESPACE so that we can apply formatting rules to it
      *
+     * Do not do this for internal blocks
+     *
      * @param $idx_tokens
      * @param $i_value
      * @return array
@@ -1393,8 +1408,24 @@ class Formatter implements \Phpcf\IFormatter
         $this->current_line = $i_value[2];
         $token = is_array($i_value) ? $idx_tokens[$i_value[0]] : $i_value;
 
-        if (preg_match('/^\\s+$/s', $i_value[1])) {
-            $token = 'T_WHITESPACE';
+        $curr_pos = key($this->tokens) - 1;
+
+        $is_internal = false;
+
+        // going backwards to find T_CLOSE_TAG
+        for ($i = $curr_pos; $i > 0; $i--) {
+            $tok = $this->tokens[$i];
+
+            if ($tok[0] === T_CLOSE_TAG) {
+                $is_internal = true;
+                break;
+            }
+        }
+
+        if (!$is_internal) {
+            if (preg_match('/^\\s+$/s', $i_value[1])) {
+                $token = 'T_WHITESPACE';
+            }
         }
 
         return [
@@ -1557,7 +1588,6 @@ class Formatter implements \Phpcf\IFormatter
     {
         $c = [];
         $in = '';
-        $out = '';
         $context = [
             'descr'       => 'correct indentation level',
             'current_pos' => $exec_ctx[0] ? $exec_ctx[0]['current_pos'] : null,
@@ -1580,13 +1610,19 @@ class Formatter implements \Phpcf\IFormatter
         }
 
         // account for ignoring lines
-        if (isset($c[PHPCF_EX_DO_NOT_TOUCH_ANYTHING]) || isset($this->lines) && !isset($this->lines[$line])) {
+        if (isset($c[PHPCF_EX_DO_NOT_TOUCH_ANYTHING])) {
             return $in;
         }
 
         if (count($c)) {
             // the executors with less value have higher precedence
             $min_key = min(array_keys($c));
+
+            // account for ignoring lines
+            if ($this->shouldIgnoreLine($c[$min_key]['line'])) {
+                return $in;
+            }
+
             $action = self::$exec_methods[$min_key];
             $out = $this->$action($in);
             $context = $c[$min_key];

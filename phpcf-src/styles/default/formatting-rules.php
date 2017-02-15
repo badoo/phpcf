@@ -639,12 +639,20 @@ $controls = [
 
     'T_OPEN_TAG' => [
         PHPCF_KEY_ALL => [
-            PHPCF_KEY_DESCR_LEFT => 'no whitespace before open tag',
+            PHPCF_KEY_DESCR_LEFT => 'no whitespace before open tag (T_OPEN_TAG in ALL)',
             PHPCF_KEY_LEFT => PHPCF_EX_DELETE_SPACES,
             PHPCF_KEY_DESCR_RIGHT => 'nothing after opening tag on the same line',
             PHPCF_KEY_RIGHT => PHPCF_EX_CHECK_NL_STRONG,
         ]
     ],
+
+    'T_WHITESPACE' => [
+        'CTX_DEFAULT' => [
+            PHPCF_KEY_DESCR_RIGHT => 'no whitespace before open tag (T_WHITESPACE in CTX_DEFAULT)',
+            PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES_STRONG,
+        ],
+    ],
+
     // curly, opening empty block
     '{_EMPTY' => [
         'CTX_FUNCTION_D CTX_FUNCTION_LONG_D CTX_CLASS_METHOD_LONG_D CTX_CLASS_METHOD_D' => [

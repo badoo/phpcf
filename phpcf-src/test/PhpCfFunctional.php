@@ -169,4 +169,20 @@ class PhpCfFunctional extends PHPUnit_Framework_TestCase
         // check for content equality (partially formatted)
         $this->assertFileEquals(__DIR__ . '/functional_dirty/Test_new_branch_formatted.php', $this->folder_final . '/Test.php');
     }
+
+    /**
+     * Test apply of dirty file
+     */
+    public function testTestWhitespaceBeforeOpentag()
+    {
+        copy(__DIR__ . '/functional_dirty/Test_whitespace_before_opentag.php', $this->folder_final . '/Test.php'); // make file dirty
+        $res = $this->callFormatter('check-git');
+        $this->assertEquals(1, $res['code']); // has errors
+        $this->assertStringMatchesFormat("Test.php issues:%a", $res['out']);
+        $res = $this->callFormatter("apply-git");
+        $this->assertEquals(0, $res['code']);
+        $this->assertStringMatchesFormat("Test.php formatted successfully%a", $res['out']);
+        $res = $this->callFormatter("check-git");
+        $this->assertEquals(0, $res['code']); // all right
+    }
 }
