@@ -10,11 +10,15 @@ class PhpCfFunctional extends PHPUnit_Framework_TestCase
     const ORIGINAL = "/original/";
     const EXPECTED = "/expected/";
 
+    private static $debug = false;
     private static $folder;
     private $folder_final;
 
     public static function setUpBeforeClass()
     {
+        $last = array_pop($_SERVER['argv']);
+        self::$debug = ($last == '--debug');
+
         while (!self::$folder) {
             $temp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid();
             if (!file_exists($temp)) {
@@ -32,15 +36,6 @@ class PhpCfFunctional extends PHPUnit_Framework_TestCase
         if (self::$folder) {
             exec("rm -rf " . escapeshellarg(self::$folder));
         }
-    }
-
-    public static function delTree($dir)
-    {
-        $files = array_diff(scandir($dir), ['.', '..']);
-        foreach ($files as $file) {
-            (is_dir("$dir/$file") && !is_link($dir)) ? self::delTree("$dir/$file") : unlink("$dir/$file");
-        }
-        return rmdir($dir);
     }
 
     private function getExecPath()
@@ -76,6 +71,9 @@ class PhpCfFunctional extends PHPUnit_Framework_TestCase
             throw new \RuntimeException("Failed to execute '{$cmd}' - unknown result");
         }
 
+        /** @var string $out */
+        /** @var string $err */
+
         return ['out' => $out, 'err' => $err, 'code' => $code];
     }
 
@@ -109,8 +107,14 @@ class PhpCfFunctional extends PHPUnit_Framework_TestCase
     public function testClear()
     {
         $initial_result = $this->callFormatter("check-git");
+        if (self::$debug) {
+            if ($initial_result['code'] !== 0) {
+                fwrite(STDERR, "Debug for testClear():\n");
+                fwrite(STDERR, var_export($initial_result, true) . "\n");
+            }
+        }
         $this->assertEquals(0, $initial_result['code']);
-        // no any ouput on empty directory
+        // no any output on empty directory
     }
 
     /**

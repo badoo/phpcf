@@ -7,86 +7,21 @@ require_once __DIR__ . '/../src/init.php';
 
 class PHPCFTest extends PHPUnit_Framework_TestCase
 {
-    private static $files;
-
-    private $Formatter;
+    private $Formatters = [];
+    private static $debug = false;
 
     const ORIGINAL = "/original/";
     const EXPECTED = "/expected/";
 
     public static function setUpBeforeClass()
     {
-        self::getFiles(); // to prevent time-waste on concrete test
+        $last = array_pop($_SERVER['argv']);
+        self::$debug = ($last == '--debug');
     }
 
     protected function setUp()
     {
         chdir(dirname(dirname(__DIR__)));
-    }
-
-    public function toString()
-    {
-        $class = new ReflectionClass($this);
-
-        $buffer = sprintf(
-            '%s::%s',
-            $class->name,
-            $this->getName(false)
-        );
-
-        return $buffer . $this->getDataSetAsString(true);
-    }
-
-    /**
-     * Test the implementation behaviour
-     * @dataProvider providerFiles
-     */
-    public function testAll($file)
-    {
-        $this->execTest($this->getFormatter(), $file);
-    }
-
-    private function execTest(\Phpcf\Formatter $Formatter, $file)
-    {
-        $source_file = $file;
-
-        if (strpos($file, ':') !== false) {
-            list($file,) = explode(':', $file);
-        }
-
-        $expected_content = null;
-        $expected = __DIR__ . self::EXPECTED . $file;
-        if (!file_exists($expected)) {
-            $this->fail("File {$expected} does not exists");
-        } else if (false === ($expected_content = file_get_contents($expected))) {
-            $this->fail("Failed to get content of {$expected}");
-        }
-
-        $original = __DIR__ . self::ORIGINAL . $source_file;
-
-        $FormatResult = $Formatter->formatFile($original);
-        $this->assertNull($FormatResult->getError()); // we expect no error
-
-        $this->assertEquals($expected_content, $FormatResult->getContent());
-    }
-
-    /**
-     * @return \Phpcf\Formatter
-     */
-    private function getFormatter()
-    {
-        if (!$this->Formatter) {
-            $this->Formatter = $this->createFormatter();
-        }
-
-        return $this->Formatter;
-    }
-
-    private function createFormatter()
-    {
-        $Options = new \Phpcf\Options();
-        $Options->toggleSniff(true);
-        return new \Phpcf\Formatter($Options);
     }
 
     /**
@@ -95,36 +30,75 @@ class PHPCFTest extends PHPUnit_Framework_TestCase
      */
     public function providerFiles()
     {
-        return self::getFiles();
+        $files = [];
+        $dh = opendir(__DIR__ . self::ORIGINAL);
+        while ($file = readdir($dh)) {
+            if ($file[0] == '.') {
+                continue;
+            }
+
+            // support for major version change
+            if (substr($file, 1, 1) == '-') {
+                if (PHP_MAJOR_VERSION < substr($file, 0, 1)) {
+                    continue;
+                }
+            }
+
+            $files[$file] = [$file];
+        }
+        closedir($dh);
+        return $files;
     }
 
     /**
-     * @return array
+     * Test the implementation behaviour
+     *
+     * @dataProvider providerFiles
+     *
+     * @param string $file
      */
-    private static function getFiles()
+    public function testFormatting($file)
     {
-        if (null === self::$files) {
-            $files = [];
-            $dh = opendir(__DIR__ . self::ORIGINAL);
-            while ($file = readdir($dh)) {
-                if ($file[0] == '.') {
-                    continue;
-                }
-                
-                // support for major version change
-                if (substr($file, 1, 1) == '-') {
-                    if (PHP_MAJOR_VERSION < substr($file, 0, 1)) {
-                        continue;
-                    }
-                }
-                
-                $files[$file] = [$file];
-            }
-            closedir($dh);
-            self::$files = $files;
+        $expected_content = null;
+        $expected = __DIR__ . self::EXPECTED . $file;
+        if (!file_exists($expected)) {
+            $this->fail("File {$expected} does not exists");
+        } else if (false === ($expected_content = file_get_contents($expected))) {
+            $this->fail("Failed to get content of {$expected}");
         }
 
-        return self::$files;
+        $original = __DIR__ . self::ORIGINAL . $file;
+
+        $Formatter = $this->getFormatter(false);
+        $FormatResult = $Formatter->formatFile($original);
+        $this->assertNull($FormatResult->getError()); // we expect no error
+
+        // Debug
+        if (self::$debug) {
+            if ($expected_content !== $FormatResult->getContent()) {
+                fwrite(STDERR, "Debug for file '{$file}':\n");
+                $DebugFormatter = $this->getFormatter(true);
+                $DebugFormatter->formatFile($original);
+            }
+        }
+
+        $this->assertEquals($expected_content, $FormatResult->getContent());
+    }
+
+    /**
+     * @param bool $debug
+     * @return \Phpcf\Formatter
+     */
+    private function getFormatter($debug)
+    {
+        if (!isset($this->Formatters[(int)$debug])) {
+            $Options = new \Phpcf\Options();
+            $Options->toggleSniff(true);
+            $Options->setDebug($debug);
+            $this->Formatters[(int)$debug] = new \Phpcf\Formatter($Options);
+        }
+
+        return $this->Formatters[(int)$debug];
     }
 
     /**
@@ -143,7 +117,7 @@ class PHPCFTest extends PHPUnit_Framework_TestCase
             6 => 12
         ];
         
-        $Formatter = $this->createFormatter();
+        $Formatter = $this->getFormatter(false);
         $Result = $Formatter->formatFile(__DIR__ . self::ORIGINAL . 'columns.php');
         $issues = $Result->getIssues();
         $this->assertNotEmpty($issues);
