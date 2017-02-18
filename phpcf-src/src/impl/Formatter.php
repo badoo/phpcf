@@ -5,8 +5,12 @@
  */
 namespace Phpcf\Impl;
 
-class Pure implements \Phpcf\IFormatter
+class Formatter implements \Phpcf\IFormatter
 {
+    const DEBUG_WIDTH_LINE = 10;
+    const DEBUG_WIDTH_CODE = 30;
+    const DEBUG_WIDTH_TEXT = 30;
+
     /**
      * @var Fsm
      */
@@ -76,6 +80,7 @@ class Pure implements \Phpcf\IFormatter
      */
     protected $token_hook_callbacks = [
         // hook should return all parsed tokens
+        T_DOC_COMMENT         => 'tokenHookClassDoc',
         T_START_HEREDOC       => 'tokenHookHeredoc',
         '.'                   => 'tokenHookBinary',
         T_OBJECT_OPERATOR     => 'tokenHookBinary',
@@ -111,7 +116,9 @@ class Pure implements \Phpcf\IFormatter
         '{'                   => 'tokenHookOpenCurly',
         '['                   => 'tokenHookSquareBracket',
         T_ARRAY               => 'tokenHookArray',
-        T_VARIABLE            => 'tokenHookVariable'
+        T_VARIABLE            => 'tokenHookVariable',
+        T_YIELD_FROM          => 'tokenHookYieldFrom',
+        T_INLINE_HTML         => 'tokenHookInlineHTML',
     ];
 
     /**
@@ -274,10 +281,23 @@ class Pure implements \Phpcf\IFormatter
             return;
         }
 
-        if (isset($this->lines) && !isset($this->lines[$this->current_line])) {
+        if ($this->shouldIgnoreLine($this->current_line)) {
             return;
         }
         $this->sniff_errors[] = ['line' => $this->current_line, 'descr' => $message];
+    }
+
+    /**
+     * @param int $line
+     * @return bool
+     */
+    protected function shouldIgnoreLine($line)
+    {
+        if (isset($this->lines) && !isset($this->lines[$line])) {
+            return true;
+        }
+
+        return false;
     }
 
     private function countExprLength($found_first_bracket = false, $max_length)
@@ -468,7 +488,7 @@ class Pure implements \Phpcf\IFormatter
         $token = '(';
         if ($length >= PHPCF_LONG_EXPRESSION_LENGTH) $token = '(_LONG';
 
-        $can_change_tokens = !isset($this->lines) || isset($this->lines[$this->current_line]);
+        $can_change_tokens = !$this->shouldIgnoreLine($this->current_line);
 
         if ($can_change_tokens && $this->isEmptyBody(')')) {
             $token = '(_EMPTY';
@@ -481,6 +501,42 @@ class Pure implements \Phpcf\IFormatter
                 PHPCF_KEY_LINE  => $this->current_line,
             ]
         ];
+    }
+
+    /**
+     * Hook rewrites T_YIELD_FROM into T_YIELD and T_FROM
+     */
+    protected function tokenHookYieldFrom($idx_tokens, $i_value)
+    {
+        $can_change_tokens = !$this->shouldIgnoreLine($this->current_line);
+
+        if (!$can_change_tokens) {
+            return [
+                [
+                    PHPCF_KEY_CODE => $i_value[0],
+                    PHPCF_KEY_TEXT => $i_value[1],
+                    PHPCF_KEY_LINE => $this->current_line,
+                ]
+            ];
+        } else {
+            return [
+                [
+                    PHPCF_KEY_CODE => 'T_YIELD',
+                    PHPCF_KEY_TEXT => 'yield',
+                    PHPCF_KEY_LINE => $this->current_line,
+                ],
+                [
+                    PHPCF_KEY_CODE => 'T_WHITESPACE',
+                    PHPCF_KEY_TEXT => ' ',
+                    PHPCF_KEY_LINE => $this->current_line,
+                ],
+                [
+                    PHPCF_KEY_CODE => 'T_FROM',
+                    PHPCF_KEY_TEXT => 'from',
+                    PHPCF_KEY_LINE => $this->current_line,
+                ],
+            ];
+        }
     }
 
     /**
@@ -653,6 +709,35 @@ class Pure implements \Phpcf\IFormatter
     }
 
     /**
+     * Check if there is class definition after doc block
+     * @param $idx_tokens
+     * @param $i_value
+     * @return array
+     */
+    protected function tokenHookClassDoc($idx_tokens, $i_value)
+    {
+        $token = $idx_tokens[$i_value[0]];
+        $next_pos = key($this->tokens);
+        $this->current_line = $i_value[2];
+
+        if (isset($this->tokens[$next_pos]) && $this->tokens[$next_pos][0] === T_WHITESPACE) {
+            $possible_class_pos = $next_pos + 1;
+        } else {
+            $possible_class_pos = $next_pos;
+        }
+        if (isset($this->tokens[$possible_class_pos]) && $this->tokens[$possible_class_pos][0] === T_CLASS) {
+            $token .= "_B4_CLASS";
+        }
+        return [
+            [
+                PHPCF_KEY_CODE => $token ,
+                PHPCF_KEY_TEXT => $i_value[1],
+                PHPCF_KEY_LINE => $this->current_line,
+            ]
+        ];
+    }
+
+    /**
      * check for newline after "const", "private", etc and check if it is something like this:
      * const
      *     CONST1 = "Something",
@@ -672,11 +757,22 @@ class Pure implements \Phpcf\IFormatter
 
         for ($i = $next_pos; $i < count($this->tokens); $i++) {
             $tok = $this->tokens[$i];
+
             // look for whitespace, comment, variable or constant name after, e.g. "private"
             // if nothing was found, then it is end of property def (or real property def did not begin)
-            if ($tok[0] === T_VARIABLE || $tok[0] === T_STRING) $is_property_def = true;
-            else if ($tok[0] !== T_COMMENT && $tok[0] !== T_WHITESPACE) break;
-            if (strpos($tok[1], "\n") !== false) $is_newline = true;
+            if ($tok[0] === T_VARIABLE || $tok[0] === T_STRING) {
+                $is_property_def = true;
+            } else if (($i_value[0] === T_CONST) && ($tok[0] === T_ARRAY || $tok[0] === T_FUNCTION || $tok[0] === T_LIST)) {
+                // PHP7 allow to use some keywords as constant name
+                $is_property_def = true;
+
+            } else if ($tok[0] !== T_COMMENT && $tok[0] !== T_WHITESPACE) {
+                break;
+            }
+
+            if (strpos($tok[1], "\n") !== false) {
+                $is_newline = true;
+            }
         }
 
         if ($is_property_def && $is_newline) $token .= '_NL';
@@ -716,7 +812,7 @@ class Pure implements \Phpcf\IFormatter
     {
         $this->current_line = $i_value[2];
 
-        $can_change_tokens = !isset($this->lines) || isset($this->lines[$this->current_line]);
+        $can_change_tokens = !$this->shouldIgnoreLine($this->current_line);
         if ($can_change_tokens) {
             $open_tag = "<?php";
             if (rtrim($i_value[1]) !== $open_tag) $this->sniffMessage('Only "<?php" is allowed as open tag');
@@ -747,7 +843,7 @@ class Pure implements \Phpcf\IFormatter
     protected function tokenHookCloseTag($idx_tokens, $i_value)
     {
         $this->current_line = $i_value[2];
-        $can_change_tokens = !isset($this->lines) || isset($this->lines[$this->current_line]);
+        $can_change_tokens = !$this->shouldIgnoreLine($this->current_line);
 
         if ($can_change_tokens) {
             $is_eof = true;
@@ -1013,7 +1109,7 @@ class Pure implements \Phpcf\IFormatter
     {
         $token = $idx_tokens[$i_value[0]];
         $this->current_line = $i_value[2];
-        $can_change_tokens = !isset($this->lines) || isset($this->lines[$this->current_line]);
+        $can_change_tokens = !$this->shouldIgnoreLine($this->current_line);
         if ($can_change_tokens) {
             if ($i_value[1][0] == '#') {
                 $this->sniffMessage("Comments starting with '#' are not allowed");
@@ -1303,6 +1399,49 @@ class Pure implements \Phpcf\IFormatter
     }
 
     /**
+     * Rewrite whitespace-only HTML to T_WHITESPACE so that we can apply formatting rules to it
+     *
+     * Do not do this for internal blocks
+     *
+     * @param $idx_tokens
+     * @param $i_value
+     * @return array
+     */
+    private function tokenHookInlineHTML($idx_tokens, $i_value)
+    {
+        $this->current_line = $i_value[2];
+        $token = is_array($i_value) ? $idx_tokens[$i_value[0]] : $i_value;
+
+        $curr_pos = key($this->tokens) - 1;
+
+        $is_internal = false;
+
+        // going backwards to find T_CLOSE_TAG
+        for ($i = $curr_pos; $i > 0; $i--) {
+            $tok = $this->tokens[$i];
+
+            if ($tok[0] === T_CLOSE_TAG) {
+                $is_internal = true;
+                break;
+            }
+        }
+
+        if (!$is_internal) {
+            if (preg_match('/^\\s+$/s', $i_value[1])) {
+                $token = 'T_WHITESPACE';
+            }
+        }
+
+        return [
+            [
+                PHPCF_KEY_CODE => $token,
+                PHPCF_KEY_TEXT => $i_value[1],
+                PHPCF_KEY_LINE => $this->current_line,
+            ]
+        ];
+    }
+
+    /**
      * Parse $body into tokens, rewrite them, etc.
      * @param string $body
      */
@@ -1453,7 +1592,6 @@ class Pure implements \Phpcf\IFormatter
     {
         $c = [];
         $in = '';
-        $out = '';
         $context = [
             'descr'       => 'correct indentation level',
             'current_pos' => $exec_ctx[0] ? $exec_ctx[0]['current_pos'] : null,
@@ -1476,13 +1614,19 @@ class Pure implements \Phpcf\IFormatter
         }
 
         // account for ignoring lines
-        if (isset($c[PHPCF_EX_DO_NOT_TOUCH_ANYTHING]) || isset($this->lines) && !isset($this->lines[$line])) {
+        if (isset($c[PHPCF_EX_DO_NOT_TOUCH_ANYTHING])) {
             return $in;
         }
 
         if (count($c)) {
             // the executors with less value have higher precedence
             $min_key = min(array_keys($c));
+
+            // account for ignoring lines
+            if ($this->shouldIgnoreLine($c[$min_key]['line'])) {
+                return $in;
+            }
+
             $action = self::$exec_methods[$min_key];
             $out = $this->$action($in);
             $context = $c[$min_key];
@@ -1684,14 +1828,18 @@ class Pure implements \Phpcf\IFormatter
         $this->setupContext();
         do {
             $cur_token = $this->ptokens[$this->current_pos];
+            $i_line = $cur_token[PHPCF_KEY_LINE];
             $i_code = $cur_token[PHPCF_KEY_CODE];
             $i_text = $cur_token[PHPCF_KEY_TEXT];
 
             if ($this->debug_enabled) {
-                $debug_code = sprintf("%30s", $i_code);
-                $whitespaces = str_repeat(' ', max(0, 30 - strlen($i_text)));
-                $msg  = $debug_code . "     " . $this->humanWhiteSpace($i_text, true) . $whitespaces;
-                $msg .= "     " . $this->FSM->getStackPath();
+                $sp = '     ';
+                $debug_line = sprintf('%' . self::DEBUG_WIDTH_LINE . 's', $i_line);
+                $debug_code = sprintf('%' . self::DEBUG_WIDTH_CODE . 's', $i_code);
+                $debug_text = $this->humanWhiteSpace($i_text, true);
+                $whitespaces = str_repeat(' ', max(0, self::DEBUG_WIDTH_TEXT - strlen($debug_text)));
+
+                $msg  = $debug_line . $sp . $debug_code . $sp . $debug_text . $whitespaces . $sp . $this->FSM->getStackPath();
 
                 fwrite(STDERR, $msg . PHP_EOL);
             }

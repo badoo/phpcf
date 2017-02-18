@@ -1,8 +1,0 @@
-*
-!*.h
-config.h
-!*.c
-!config.m4
-!CREDITS
-!README
-!.gitignore

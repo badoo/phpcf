@@ -65,4 +65,9 @@ if (!defined('PHPCF_DEFINED')) {
     define('T_ARRAY_SHORT',                10010);
     define('T_ARRAY_SHORT_ML',             10011);
     define('T_ARRAY_HINT',                 10012);
+    define('T_FROM',                       10013);
+    if (!defined('T_YIELD_FROM')) {
+        // needed, since used in hook
+        define('T_YIELD_FROM', 10014);
+    }
 }

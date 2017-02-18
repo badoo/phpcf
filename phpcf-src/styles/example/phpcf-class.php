@@ -1,10 +1,8 @@
 <?php
-/* If you define your PHPCF_<Style> class, then pure-php implementation will be forced */
-
-/* class must be named as PHPCF_<Style> */
+/* Class must be named as PHPCF_<Style> */
 namespace Phpcf\Impl;
 
-class PHPCF_Example extends Pure
+class PHPCF_Example extends Formatter
 {
     protected function init()
     {

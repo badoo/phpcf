@@ -63,8 +63,6 @@ $ echo $?
 1
 ```
 
-Even though our utility is written in PHP most files are formatted in a fraction of a second. But in Badoo we have a huge repository that contains millions SLOC, so we wrote a PHP extension that increases formatter performance 100x. All our repository (which is 2 million SLOC at the moment of writing this README) is formatted in 8 seconds on a single i7 core. In order to use the extension you need to compile it from "phpcf-src/ext" folder using "phpize; ./configure; make; make install" and either put "enable_dl = On" in your php.ini or put "extension=phpcf.so" there.
-
 It is worth noting again that phpcf is designed to only change whitespace characters and to do the most simple tasks such as:
  - replacing "<?" with "<?php"
  - removing extra closing tag from the end of file

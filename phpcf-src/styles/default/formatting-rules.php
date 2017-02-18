@@ -6,6 +6,10 @@ $binary_operators = 'T_AND_EQUAL T_CONCAT_EQUAL T_DIV_EQUAL T_IS_EQUAL T_IS_GREA
     . '= + & - * ^ % / ? | < > . T_IS_IDENTICAL T_IS_NOT_IDENTICAL T_IS_EQUAL T_IS_NOT_EQUAL '
     . 'T_LOGICAL_AND T_BOOLEAN_AND T_LOGICAL_OR T_BOOLEAN_OR T_LOGICAL_XOR T_SL T_SR';
 
+if (defined('T_SPACESHIP')) {
+    $binary_operators .= ' T_SPACESHIP';
+}
+
 $onespace = [
     PHPCF_KEY_ALL => [
         PHPCF_KEY_DESCR_LEFT => 'One space before as, elseif, else, catch, insteadof, instanceof, finally',
@@ -112,6 +116,12 @@ $controls = [
             PHPCF_KEY_DESCR_LEFT => 'Nothing before "class" in class reference call',
             PHPCF_KEY_LEFT => PHPCF_EX_DELETE_SPACES,
         ],
+        'CTX_CLASS_D_ANON' => [
+            PHPCF_KEY_DESCR_LEFT => 'One space before "class" in anon class declaration',
+            PHPCF_KEY_LEFT => PHPCF_EX_SHRINK_SPACES_STRONG,
+            PHPCF_KEY_DESCR_RIGHT => 'One space after "class" in anon class declaration',
+            PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES_STRONG,
+        ],
         PHPCF_KEY_ALL => [
             PHPCF_KEY_DESCR_LEFT => 'empty line before "class/interface/trait"',
             PHPCF_KEY_LEFT => PHPCF_EX_SHRINK_NLS_2,
@@ -126,6 +136,12 @@ $controls = [
             PHPCF_KEY_DESCR_RIGHT => 'One space after "extends/implements"',
             PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES,
         ]
+    ],
+    'T_DOC_COMMENT_B4_CLASS' => [
+        PHPCF_KEY_ALL => [
+            PHPCF_KEY_DESCR_RIGHT => 'Class to start on a new line after doc block comment and no empty string before class definition',
+            PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_NLS_STRONG,
+        ],
     ],
     'T_NAMESPACE' => [
         PHPCF_KEY_ALL => [
@@ -186,6 +202,12 @@ $controls = [
             PHPCF_KEY_DESCR_RIGHT => 'nothing after "(" on the same line in long expression',
             PHPCF_KEY_RIGHT => [PHPCF_EX_INCREASE_INDENT, PHPCF_EX_CHECK_NL]
         ],
+        'CTX_FUNCTION_CALL_BEGIN' => [
+            PHPCF_KEY_DESCR_LEFT => 'Nothing before "(" in function call',
+            PHPCF_KEY_LEFT => PHPCF_EX_DELETE_SPACES_STRONG,
+            PHPCF_KEY_DESCR_RIGHT => 'Nothing after "("',
+            PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES,
+        ]
     ],
     ')' => [
         PHPCF_KEY_ALL => [
@@ -448,6 +470,20 @@ $controls = [
             PHPCF_KEY_DESCR_RIGHT => 'One space after ":" in ternary operator ( ... ? ... : ... )',
             PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES_STRONG,
         ],
+        'CTX_FUNCTION_RETURN_D CTX_METHOD_RETURN_D' => [
+            PHPCF_KEY_DESCR_LEFT => 'One space before ":" in function return hint',
+            PHPCF_KEY_LEFT => PHPCF_EX_SHRINK_SPACES_STRONG,
+            PHPCF_KEY_DESCR_RIGHT => 'One space after ":" in function return hint',
+            PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES_STRONG,
+        ],
+    ],
+    'T_COALESCE' => [
+        'CTX_TERNARY_OPERATOR CTX_TERNARY_OPERATOR_H' => [
+            PHPCF_KEY_DESCR_LEFT => 'One space before "??"',
+            PHPCF_KEY_LEFT => PHPCF_EX_SHRINK_SPACES_STRONG,
+            PHPCF_KEY_DESCR_RIGHT => 'One space after "??"',
+            PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES_STRONG,
+        ],
     ],
     'T_SWITCH' => [
         PHPCF_KEY_ALL => [
@@ -603,10 +639,20 @@ $controls = [
 
     'T_OPEN_TAG' => [
         PHPCF_KEY_ALL => [
+            PHPCF_KEY_DESCR_LEFT => 'no whitespace before open tag (T_OPEN_TAG in ALL)',
+            PHPCF_KEY_LEFT => PHPCF_EX_DELETE_SPACES,
             PHPCF_KEY_DESCR_RIGHT => 'nothing after opening tag on the same line',
             PHPCF_KEY_RIGHT => PHPCF_EX_CHECK_NL_STRONG,
         ]
     ],
+
+    'T_WHITESPACE' => [
+        'CTX_DEFAULT' => [
+            PHPCF_KEY_DESCR_RIGHT => 'no whitespace before open tag (T_WHITESPACE in CTX_DEFAULT)',
+            PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES_STRONG,
+        ],
+    ],
+
     // curly, opening empty block
     '{_EMPTY' => [
         'CTX_FUNCTION_D CTX_FUNCTION_LONG_D CTX_CLASS_METHOD_LONG_D CTX_CLASS_METHOD_D' => [
@@ -642,6 +688,12 @@ $controls = [
             PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES,
         ],
     ],
+    'T_NEW' => [
+        PHPCF_KEY_ALL => [
+            PHPCF_KEY_DESCR_RIGHT => 'One whitespace after "new"',
+            PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES,
+        ],
+    ],
 ];
 
 /**
@@ -660,4 +712,26 @@ if (defined('T_FINALLY')) {
         ],
     ];
 }
+
+if (defined('T_ELLIPSIS')) {
+    $controls += [
+        'T_ELLIPSIS' => [
+            PHPCF_KEY_ALL => [
+                PHPCF_KEY_DESCR_LEFT => 'One space before "..."',
+                PHPCF_KEY_LEFT => PHPCF_EX_SHRINK_SPACES_STRONG,
+                PHPCF_KEY_DESCR_RIGHT => 'No space after "..."',
+                PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES_STRONG,
+            ],
+        ],
+        'T_FROM' => [
+            PHPCF_KEY_ALL => [
+                PHPCF_KEY_DESCR_LEFT => 'One space before "from"',
+                PHPCF_KEY_LEFT => PHPCF_EX_SHRINK_SPACES_STRONG,
+                PHPCF_KEY_DESCR_RIGHT => 'One space after "from"',
+                PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES_STRONG,
+            ],
+        ],
+    ];
+}
+
 return $controls;

@@ -15,8 +15,6 @@ class Options
 
     private $debug = false;
 
-    private $pure;
-
     private $sniff = false;
 
     private $emacs_style = false;
@@ -105,19 +103,6 @@ class Options
     public function setDebug($debug)
     {
         $this->debug = $debug;
-    }
-
-    /**
-     * @param bool|null $flag
-     */
-    public function usePure($flag)
-    {
-        $this->pure = $flag;
-    }
-
-    public function getPureBehaviour()
-    {
-        return $this->pure;
     }
 
     public function toggleSniff($flag)

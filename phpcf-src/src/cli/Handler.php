@@ -18,11 +18,8 @@ class Handler
     private $flags = [
         ['debug',       'd', true,  'turn on debug mode (A LOT will be printed)'],
         ['quiet',       'q', true,  'do not print status messages'],
-        ['no-messages', 'n', true,  'do not print any sniffer messages'],
         ['summary',     's', true,  'show only number of formatting error messages (if any)'],
-        ['pure-php',    'p', true,  'forced use of pure PHP implementation (do not use extension)'],
         ['emacs',       'e', true,  'emacs-style output (each line of output contains filename, line, col)'],
-        ['log',         '',  false, 'log error messages to a specified file'],
         ['style',       '',  false, 'use specified <style> in addition to default'],
     ];
 
@@ -128,31 +125,24 @@ class Handler
         foreach ($argv as $k => $v) {
             \Phpcf\Helper::parseArg('debug',       'd', 1, $options, $argv, $k, $v);
             \Phpcf\Helper::parseArg('quiet',       'q', 1, $options, $argv, $k, $v);
-            \Phpcf\Helper::parseArg('emacs',       'e', 1, $options, $argv, $k, $v);
             \Phpcf\Helper::parseArg('summary',     's', 1, $options, $argv, $k, $v);
-            \Phpcf\Helper::parseArg('no-messages', 'n', 1, $options, $argv, $k, $v);
-            \Phpcf\Helper::parseArg('pure-php',    'p', 1, $options, $argv, $k, $v);
-            \Phpcf\Helper::parseArg('lines',       0,   0, $options, $argv, $k, $v);
-            \Phpcf\Helper::parseArg('log',         0,   0, $options, $argv, $k, $v);
+            \Phpcf\Helper::parseArg('emacs',       'e', 1, $options, $argv, $k, $v);
             \Phpcf\Helper::parseArg('style',       0,   0, $options, $argv, $k, $v);
         }
 
         $Retval = new \Phpcf\Options();
 
-        if (!empty($options['quiet'])) {
-            $Retval->setQuiet(true);
-        }
-        if (!empty($options['pure-php'])) {
-            $Retval->usePure(true);
-        }
         if (!empty($options['debug'])) {
             $Retval->setDebug(true);
         }
-        if (!empty($options['emacs'])) {
-            $Retval->setEmacsStyle(true);
+        if (!empty($options['quiet'])) {
+            $Retval->setQuiet(true);
         }
         if (!empty($options['summary'])) {
             $Retval->setSummary(true);
+        }
+        if (!empty($options['emacs'])) {
+            $Retval->setEmacsStyle(true);
         }
         if (!empty($options['style'])) {
             $Retval->setCustomStyle($options['style']);

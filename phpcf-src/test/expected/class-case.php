@@ -2,7 +2,6 @@
 /**
  * Test for not appending lines, when class reference is in switch
  */
-
 class One
 {
     public function create()

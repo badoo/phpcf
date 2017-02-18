@@ -4,7 +4,6 @@
  * Class with constants, check alignment, if comment is present
  * THE EXPECTED FILE MUST BE LIKE THIS
  */
-
 class Constants
 {
     const LOAD_RESULT_SUCCESS       = 0; // code

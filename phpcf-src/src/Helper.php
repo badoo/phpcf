@@ -16,7 +16,7 @@ class Helper
             }
 
             if (!@dl($library . '.' . PHP_SHLIB_SUFFIX)) {
-                throw new \RuntimeException("Failed to load extension '$library': 'dl' failed");
+                throw new \RuntimeException("Failed to load extension '{$library}': 'dl' failed");
             }
         }
     }
