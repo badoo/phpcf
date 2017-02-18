@@ -44,7 +44,7 @@ class StringAscii
             return [$string, ""];
         }
 
-        $stats = "";
+        $stats = [];
 
         preg_match_all($this->pattern, $string, $matches, PREG_OFFSET_CAPTURE);
         // collecting stats for symbols
