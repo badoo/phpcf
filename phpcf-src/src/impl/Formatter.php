@@ -247,6 +247,7 @@ class Formatter implements \Phpcf\IFormatter
      */
     private function flush()
     {
+        $this->indent_level = 0;
         $this->last_long_position = -1;
         $this->line_count = 0;
         $this->lines = $this->current_line = null;
