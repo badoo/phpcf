@@ -244,6 +244,7 @@ $fsm_context_rules_class = [
         '{' => ['NOW' => 'CTX_CLASS_METHOD_D', 'NEXT' => 'CTX_CLASS_METHOD'],
         '{_EMPTY' => 'CTX_CLASS_METHOD_EMPTY',
         ': T_ARRAY' => ['NOW' => 'CTX_METHOD_RETURN_D', 'NEXT' => 'CTX_CLASS_METHOD_D'],
+        '? T_ARRAY' => ['NOW' => 'CTX_METHOD_RETURN_D', 'NEXT' => 'CTX_CLASS_METHOD_D'],
     ] + $fsm_inline_rules,
     'CTX_CLASS_METHOD_D_NL' => [
         '(_LONG' => 'CTX_CLASS_METHOD_LONG_D',

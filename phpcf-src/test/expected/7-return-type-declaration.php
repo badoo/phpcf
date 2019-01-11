@@ -50,6 +50,8 @@ class Test
     function returnCallable() : callable {}
 
     function returnSelf() : self {}
+
+    function returnNullable() : ? array {}
 }
 
 trait TestTrait
@@ -77,6 +79,8 @@ trait TestTrait
     function returnCallable() : callable {}
 
     function returnSelf() : self {}
+
+    function returnNullable() : ? array {}
 }
 
 interface TestInterface
@@ -98,4 +102,6 @@ interface TestInterface
     function returnCallable() : callable;
 
     function returnSelf() : self;
+
+    function returnNullable() : ? array;
 }

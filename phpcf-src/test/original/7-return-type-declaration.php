@@ -14,7 +14,7 @@ function two()
 }
 
 function oneEmpty()
-: 
+:
 \DateTime {}
 
 function returnArray()
@@ -63,6 +63,9 @@ class Test {
 
     function returnSelf()
     : self{}
+
+    function returnNullable()
+    : ? array{}
 }
 
 trait TestTrait {
@@ -96,6 +99,9 @@ trait TestTrait {
 
     function returnSelf()
     : self{}
+
+    function returnNullable()
+    : ? array{}
 }
 
 interface TestInterface {
@@ -125,4 +131,7 @@ interface TestInterface {
 
     function returnSelf()
     : self;
+
+    function returnNullable()
+    : ? array;
 }
