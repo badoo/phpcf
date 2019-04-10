@@ -343,7 +343,16 @@ class Formatter implements \Phpcf\IFormatter
      */
     protected function shouldIgnoreToken($token)
     {
-        return $token == T_WHITESPACE || $token == T_COMMENT;
+        return in_array($token, [T_WHITESPACE, T_COMMENT]);
+    }
+
+    /**
+     * @param mixed $token
+     * @return bool
+     */
+    protected function isAllowedKeywordToken($token)
+    {
+        return in_array($token, [T_ARRAY, T_FUNCTION, T_LIST, T_INCLUDE, T_DEFAULT]);
     }
 
     public function setDebugEnabled($flag)
@@ -412,7 +421,8 @@ class Formatter implements \Phpcf\IFormatter
             PHPCF_KEY_LINE  => $this->current_line,
         ];
 
-        while (list(, $i_value) = each($this->tokens)) {
+        while ($i_value = current($this->tokens)) {
+            next($this->tokens);
             if ($i_value[0] === T_END_HEREDOC) {
                 $this->current_line = $i_value[2];
                 $processed_tokens[] = [
@@ -420,6 +430,17 @@ class Formatter implements \Phpcf\IFormatter
                     PHPCF_KEY_TEXT => $heredoc_value,
                     PHPCF_KEY_LINE => $this->current_line,
                 ];
+                $heredoc_end_token = [
+                    PHPCF_KEY_CODE  => $idx_tokens[$i_value[0]],
+                    PHPCF_KEY_TEXT  => $i_value[1],
+                    PHPCF_KEY_LINE  => $this->current_line,
+                ];
+                $i_value = current($this->tokens);
+                next($this->tokens);
+                if ($i_value && ($i_value[0] === ';')) {
+                    $heredoc_end_token[PHPCF_KEY_TEXT] .= ';';
+                }
+                $processed_tokens[] = $heredoc_end_token;
                 break;
             }
 
@@ -430,12 +451,6 @@ class Formatter implements \Phpcf\IFormatter
                 $heredoc_value .= $i_value;
             }
         }
-
-        $processed_tokens[] = [
-            PHPCF_KEY_CODE  => $idx_tokens[$i_value[0]],
-            PHPCF_KEY_TEXT  => $i_value[1],
-            PHPCF_KEY_LINE  => $this->current_line,
-        ];
 
         return $processed_tokens;
     }
@@ -455,7 +470,8 @@ class Formatter implements \Phpcf\IFormatter
 
         $processed_tokens[] = $quote_token;
 
-        while (list(, $i_value) = each($this->tokens)) {
+        while ($i_value = current($this->tokens)) {
+            next($this->tokens);
             if ($i_value === $q) {
                 $processed_tokens[] = [
                     PHPCF_KEY_CODE  => 'T_STRING_CONTENTS',
@@ -725,8 +741,20 @@ class Formatter implements \Phpcf\IFormatter
         } else {
             $possible_class_pos = $next_pos;
         }
-        if (isset($this->tokens[$possible_class_pos]) && $this->tokens[$possible_class_pos][0] === T_CLASS) {
-            $token .= "_B4_CLASS";
+        if (isset($this->tokens[$possible_class_pos])) {
+            switch ($this->tokens[$possible_class_pos][0]) {
+                case T_CLASS:
+                    $token .= "_B4_CLASS";
+                    break;
+
+                case T_TRAIT:
+                    $token .= "_B4_TRAIT";
+                    break;
+
+                case T_INTERFACE:
+                    $token .= "_B4_INTERFACE";
+                    break;
+            }
         }
         return [
             [
@@ -762,10 +790,9 @@ class Formatter implements \Phpcf\IFormatter
             // if nothing was found, then it is end of property def (or real property def did not begin)
             if ($tok[0] === T_VARIABLE || $tok[0] === T_STRING) {
                 $is_property_def = true;
-            } else if (($i_value[0] === T_CONST) && ($tok[0] === T_ARRAY || $tok[0] === T_FUNCTION || $tok[0] === T_LIST)) {
+            } else if (($i_value[0] === T_CONST) && $this->isAllowedKeywordToken($tok[0])) {
                 // PHP7 allow to use some keywords as constant name
                 $is_property_def = true;
-
             } else if ($tok[0] !== T_COMMENT && $tok[0] !== T_WHITESPACE) {
                 break;
             }
@@ -1151,7 +1178,8 @@ class Formatter implements \Phpcf\IFormatter
 
     /**
      * Rename T_STRING to T_FUNCTION_NAME if it is a function/method name:
-     * Valid cases:  call_something()   $this->call_something()   function call_something()Invalid cases:  self::MY_CONST   do_something(MY_CONST)  etc
+     * Valid cases:  call_something()   $this->call_something()   function call_something()
+     * Invalid cases:  self::MY_CONST   do_something(MY_CONST)  etc
      * If string filter is present => apply it 
      * @param $idx_tokens
      * @param $i_value
@@ -1330,7 +1358,12 @@ class Formatter implements \Phpcf\IFormatter
                     if ($this->shouldIgnoreToken($tok)) continue;
                     // function doSomethingGood(
                     //          ^ T_STRING     ^ arguments begin here
-                    if ($tok[0] === T_STRING && !$found_arguments_begin) $is_anonymous = false;
+                    if ($tok[0] === T_STRING && !$found_arguments_begin) {
+                        $is_anonymous = false;
+                    } else if (!$found_arguments_begin && $this->isAllowedKeywordToken($tok[0])) {
+                        // PHP7 allow to use some keywords as function name
+                        $is_anonymous = false;
+                    }
                 } else if (!$found_open_bracket) {
                     $length += strlen($tok);
                     if ($tok === '(') $found_arguments_begin = true;
@@ -1379,11 +1412,42 @@ class Formatter implements \Phpcf\IFormatter
     private function tokenHookTernaryBegin($idx_tokens, $i_value)
     {
         if (current($this->tokens) === ':') {
-            each($this->tokens);
+            next($this->tokens);
             return [
                 [
                     PHPCF_KEY_CODE => '?:',
                     PHPCF_KEY_TEXT => '?:',
+                    PHPCF_KEY_LINE => $this->current_line,
+                ]
+            ];
+        }
+
+        // going backwards to find ( or ,
+        $curr_pos = key($this->tokens) - 2;
+        $is_nullable_type_mark = false;
+        for ($i = $curr_pos; $i > 0; $i--) {
+            $tok = $this->tokens[$i];
+
+            if (is_array($tok)) {
+                $tok = $tok[0];
+            }
+
+            if ($this->shouldIgnoreToken($tok)) {
+                continue;
+            }
+
+            if (in_array($tok, ['(', ',', ':'])) {
+                $is_nullable_type_mark = true;
+            }
+
+            break;
+        }
+
+        if ($is_nullable_type_mark) {
+            return [
+                [
+                    PHPCF_KEY_CODE => '?_NULLABLE_MARK',
+                    PHPCF_KEY_TEXT => '?',
                     PHPCF_KEY_LINE => $this->current_line,
                 ]
             ];
@@ -1460,7 +1524,8 @@ class Formatter implements \Phpcf\IFormatter
         $heredoc_value = $string_value = '';
         // iterate array manually so that we can read several tokens in hooks and auto-advance position
         reset($this->tokens);
-        while (list(, $i_value) = each($this->tokens)) {
+        while ($i_value = current($this->tokens)) {
+            next($this->tokens);
             $tok = is_array($i_value) ? $i_value[0] : $i_value;
             if (isset($this->token_hook_callbacks[$tok])) {
                 $method_name = $this->token_hook_callbacks[$tok];
@@ -1872,12 +1937,13 @@ class Formatter implements \Phpcf\IFormatter
         $final_state = $this->FSM->getStackPath();
 
         $valid_states = [
-            'CTX_PHP'       => true,
-            'CTX_DEFAULT'   => true
+            'CTX_PHP'           => true,
+            'CTX_DEFAULT'       => true,
+            'CTX_HALT_COMPILER' => true,
         ];
 
         if (!isset($valid_states[$final_state])) {
-            throw new \RuntimeException("Internal formatter error: final state must be CTX_PHP or CTX_DEFAULT, got '$final_state'");
+            throw new \RuntimeException("Internal formatter error: final state must be CTX_PHP, CTX_DEFAULT or CTX_HALT_COMPILER, got '$final_state'");
         }
     }
 

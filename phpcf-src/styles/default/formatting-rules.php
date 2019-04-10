@@ -137,9 +137,9 @@ $controls = [
             PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES,
         ]
     ],
-    'T_DOC_COMMENT_B4_CLASS' => [
+    'T_DOC_COMMENT_B4_CLASS T_DOC_COMMENT_B4_TRAIT T_DOC_COMMENT_B4_INTERFACE' => [
         PHPCF_KEY_ALL => [
-            PHPCF_KEY_DESCR_RIGHT => 'Class to start on a new line after doc block comment and no empty string before class definition',
+            PHPCF_KEY_DESCR_RIGHT => 'Class/trait/interface to start on a new line after doc block comment and no empty string before class/trait/interface definition',
             PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_NLS_STRONG,
         ],
     ],
@@ -192,7 +192,7 @@ $controls = [
     '( (_LONG' => [
         PHPCF_KEY_ALL => [
             PHPCF_KEY_DESCR_RIGHT => 'Nothing after "("',
-            PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES,
+            PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES_STRONG,
         ],
         'CTX_GENERIC_PARENTHESIS' => [
             PHPCF_KEY_DESCR_RIGHT => 'Nothing after "("',
@@ -206,7 +206,7 @@ $controls = [
             PHPCF_KEY_DESCR_LEFT => 'Nothing before "(" in function call',
             PHPCF_KEY_LEFT => PHPCF_EX_DELETE_SPACES_STRONG,
             PHPCF_KEY_DESCR_RIGHT => 'Nothing after "("',
-            PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES,
+            PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES_STRONG,
         ]
     ],
     ')' => [
@@ -255,7 +255,7 @@ $controls = [
             PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES,
         ],
         'CTX_INLINE_EXPR_NL_END' => [
-            PHPCF_KEY_DESCR_LEFT => 'Nothing before ")" in end of long expression',
+            PHPCF_KEY_DESCR_LEFT => 'Nothing before ";" in end of long expression',
             PHPCF_KEY_LEFT => [PHPCF_EX_DECREASE_INDENT, PHPCF_EX_DELETE_SPACES_STRONG],
             PHPCF_KEY_DESCR_RIGHT => 'nothing after ";" on the same line',
             PHPCF_KEY_RIGHT => PHPCF_EX_CHECK_NL,
@@ -271,6 +271,26 @@ $controls = [
             PHPCF_KEY_LEFT => PHPCF_EX_DELETE_SPACES,
             PHPCF_KEY_DESCR_RIGHT => 'nothing after "case;" on the same line an no empty lines',
             PHPCF_KEY_RIGHT => [PHPCF_EX_INCREASE_INDENT, PHPCF_EX_SHRINK_NLS],
+        ],
+        'CTX_HALT_COMPILER' => [
+            PHPCF_KEY_DESCR_LEFT => 'No changes',
+            PHPCF_KEY_LEFT => PHPCF_EX_DO_NOT_TOUCH_ANYTHING,
+            PHPCF_KEY_DESCR_RIGHT => 'No changes',
+            PHPCF_KEY_RIGHT => PHPCF_EX_DO_NOT_TOUCH_ANYTHING,
+        ]
+    ],
+    '?_NULLABLE_MARK' => [
+        'CTX_FUNCTION_RETURN_D CTX_METHOD_RETURN_D' => [
+            PHPCF_KEY_DESCR_LEFT => 'One space before nullable type mark (?) in function/method return hint',
+            PHPCF_KEY_LEFT => PHPCF_EX_SHRINK_SPACES_STRONG,
+            PHPCF_KEY_DESCR_RIGHT => 'Nothing after nullable type mark (?) in function/method return hint',
+            PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES,
+        ],
+        'CTX_FUNCTION_D CTX_FUNCTION_PARAMS CTX_FUNCTION_LONG_PARAMS CTX_ANONFUNC_LONG_D CTX_FUNCTION_LONG_D' => [
+            PHPCF_KEY_DESCR_LEFT => 'No changes',
+            PHPCF_KEY_LEFT => PHPCF_EX_DO_NOT_TOUCH_ANYTHING,
+            PHPCF_KEY_DESCR_RIGHT => 'Nothing after nullable type mark (?) in function/method signature',
+            PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES,
         ],
     ],
     $binary_operators => [
@@ -471,9 +491,9 @@ $controls = [
             PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES_STRONG,
         ],
         'CTX_FUNCTION_RETURN_D CTX_METHOD_RETURN_D' => [
-            PHPCF_KEY_DESCR_LEFT => 'One space before ":" in function return hint',
+            PHPCF_KEY_DESCR_LEFT => 'One space before ":" in function/method return hint',
             PHPCF_KEY_LEFT => PHPCF_EX_SHRINK_SPACES_STRONG,
-            PHPCF_KEY_DESCR_RIGHT => 'One space after ":" in function return hint',
+            PHPCF_KEY_DESCR_RIGHT => 'One space after ":" in function/method return hint',
             PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES_STRONG,
         ],
     ],
@@ -692,6 +712,12 @@ $controls = [
         PHPCF_KEY_ALL => [
             PHPCF_KEY_DESCR_RIGHT => 'One whitespace after "new"',
             PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES,
+        ],
+    ],
+    'T_END_HEREDOC' => [
+        PHPCF_KEY_ALL => [
+            PHPCF_KEY_DESCR_RIGHT => 'New line required after heredoc end',
+            PHPCF_KEY_RIGHT => PHPCF_EX_CHECK_NL_STRONG,
         ],
     ],
 ];

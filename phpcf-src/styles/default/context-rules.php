@@ -211,17 +211,17 @@ $fsm_context_rules_class = [
     'CTX_CLASS_CONST_DEF_NL' => [
         'T_STRING' => 'CTX_CLASS_CONST_D_NL',
         // PHP7 allow to use some keywords as constant name
-        'T_ARRAY T_FUNCTION T_ANONFUNC T_LIST' => 'CTX_CLASS_CONST_D_NL',
+        'T_ARRAY T_FUNCTION T_ANONFUNC T_LIST T_INCLUDE T_DEFAULT' => 'CTX_CLASS_CONST_D_NL',
     ],
     'CTX_CLASS_CONST_D' => [
         'T_STRING' => 'CTX_CLASS_CONST',
         // PHP7 allow to use some keywords as constant name
-        'T_ARRAY T_FUNCTION T_ANONFUNC T_LIST' => 'CTX_CLASS_CONST',
+        'T_ARRAY T_FUNCTION T_ANONFUNC T_LIST T_INCLUDE T_DEFAULT' => 'CTX_CLASS_CONST',
     ],
     'CTX_CLASS_CONST_D_NL' => [
         'T_STRING' => 'CTX_CLASS_CONST_NL',
         // PHP7 allow to use some keywords as constant name
-        'T_ARRAY T_FUNCTION T_LIST' => 'CTX_CLASS_CONST_NL',
+        'T_ARRAY T_FUNCTION T_LIST T_INCLUDE T_DEFAULT' => 'CTX_CLASS_CONST_NL',
         ';' => ['NOW' => 'CTX_CLASS_CONST_NL_END', 'NEXT' => -1]
     ] + $fsm_inline_rules,
     'CTX_CLASS_CONST' => [
@@ -243,14 +243,19 @@ $fsm_context_rules_class = [
         ';' => -1,
         '{' => ['NOW' => 'CTX_CLASS_METHOD_D', 'NEXT' => 'CTX_CLASS_METHOD'],
         '{_EMPTY' => 'CTX_CLASS_METHOD_EMPTY',
-        ': T_ARRAY' => ['NOW' => 'CTX_METHOD_RETURN_D', 'NEXT' => 'CTX_CLASS_METHOD_D'],
+        ':' => ['CTX_METHOD_RETURN_D'],
     ] + $fsm_inline_rules,
+    'CTX_METHOD_RETURN_D' => [
+        ';' => -2,
+        '{' => ['NOW' => -1, 'NEXT' => 'CTX_CLASS_METHOD'],
+        '{_EMPTY' => ['REPLACE' => [-2, ['CTX_EMPTY_BLOCK_END']]],
+    ],
     'CTX_CLASS_METHOD_D_NL' => [
         '(_LONG' => 'CTX_CLASS_METHOD_LONG_D',
         ';' => -1,
         '{' => ['NOW' => 'CTX_CLASS_METHOD_D', 'NEXT' => 'CTX_CLASS_METHOD'],
         '{_EMPTY' => 'CTX_CLASS_METHOD_EMPTY',
-        ': T_ARRAY' => ['NOW' => 'CTX_METHOD_RETURN_D', 'NEXT' => 'CTX_CLASS_METHOD_D_NL']
+        ':' => ['CTX_METHOD_RETURN_D']
     ] + $fsm_inline_rules,
     'CTX_CLASS_METHOD_LONG_D' => [
         '( (_EMPTY' => ['CTX_METHOD_LONG_D_PAR'],
@@ -305,9 +310,11 @@ $fsm_context_rules_class = [
     ],
     'CTX_FUNCTION_PARAMS' => [
         ')' => ['NOW' => 'CTX_FUNCTION_CALL_END', 'NEXT' => -1],
+        //'T_FUNCTION' => ['CTX_ANONFUNC_D'],
     ] + $fsm_inline_rules,
     'CTX_FUNCTION_LONG_PARAMS' => [
         ')'            => ['NOW' => 'CTX_FUNCTION_LONG_PARAMS_END', 'NEXT' => -1],
+        //'T_FUNCTION' => ['CTX_ANONFUNC_LONG_D'],
         $fsm_nl_tokens => ['CTX_LONG_FIRST_NL'],
     ] + $fsm_inline_rules,
 ];
@@ -332,7 +339,9 @@ $fsm_context_rules = [
         'T_OPEN_TAG'           => 'CTX_PHP',
         'T_OPEN_TAG_WITH_ECHO' => 'CTX_PHP',
     ],
-    'CTX_PHP' => $fsm_generic_code_rules,
+    'CTX_PHP' => [
+        'T_HALT_COMPILER' => 'CTX_HALT_COMPILER',
+    ] + $fsm_generic_code_rules,
     'CTX_INLINE_BRACE_BEGIN' => $fsm_context_rules_brace_begin,
     'CTX_INLINE_BRACE' => [
         '}' => ['NOW' => 'CTX_INLINE_BRACE', 'NEXT' => -1],
