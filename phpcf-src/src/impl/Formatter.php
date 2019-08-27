@@ -570,7 +570,9 @@ class Formatter implements \Phpcf\IFormatter
             $token = $this->tokens[$i];
             if (is_array($token) && $this->shouldIgnoreToken($token[0])) {
                 continue;
-            } else if ('&' === $token || (is_array($token) && T_VARIABLE === $token[0])) {
+            } else if ('&' === $token
+                || (is_array($token)
+                    && (T_VARIABLE === $token[0] || (defined('T_ELLIPSIS') && T_ELLIPSIS === $token[0])))) {
                 // '&' is reference in 'array &$variable'
                 $type = 'T_ARRAY_HINT';
                 break;
