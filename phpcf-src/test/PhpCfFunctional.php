@@ -5,7 +5,7 @@
  */
 require_once __DIR__ . '/../src/init.php';
 
-class PhpCfFunctional extends PHPUnit_Framework_TestCase
+class PhpCfFunctional extends \PHPUnit\Framework\TestCase
 {
     const ORIGINAL = "/original/";
     const EXPECTED = "/expected/";
@@ -14,7 +14,7 @@ class PhpCfFunctional extends PHPUnit_Framework_TestCase
     private static $folder;
     private $folder_final;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass() : void
     {
         $last = array_pop($_SERVER['argv']);
         self::$debug = ($last == '--debug');
@@ -31,7 +31,7 @@ class PhpCfFunctional extends PHPUnit_Framework_TestCase
         }
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass() : void
     {
         if (self::$folder) {
             exec("rm -rf " . escapeshellarg(self::$folder));
@@ -77,7 +77,7 @@ class PhpCfFunctional extends PHPUnit_Framework_TestCase
         return ['out' => $out, 'err' => $err, 'code' => $code];
     }
 
-    protected function setUp()
+    protected function setUp() : void
     {
         $this->initRepo();
     }

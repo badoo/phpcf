@@ -10,10 +10,10 @@
     }
   ],
   "require": {
-    "php": ">=5.5"
+    "php": "^7.0.17"
   },
   "require-dev": {
-    "phpunit/phpunit": "^6.5.5"
+    "phpunit/phpunit": "^8.4.3"
   },
   "config": {
     "preferred-install": "source"
