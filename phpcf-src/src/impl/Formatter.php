@@ -1146,12 +1146,12 @@ class Formatter implements \Phpcf\IFormatter
             }
         }
 
-        if ($i_value[1][0] == '#' || substr($i_value[1], 0, 2) == '//') {
+        if ($i_value[1][0] === '#' || substr($i_value[1], 0, 2) === '//') {
             // if previous token is whitespace with line feed, then it means that this comment takes whole line
             $prev_pos = key($this->tokens) - 2; // otherwise it is appended to some expression like this one
             if ($prev_pos > 1) {
                 $prev_tok = $this->tokens[$prev_pos];
-                if ($prev_pos[0] === T_WHITESPACE && strpos($prev_tok[1], "\n") !== false) {
+                if ($prev_tok[0] === T_WHITESPACE && strpos($prev_tok[1], "\n") !== false) {
                     $token = 'T_SINGLE_LINE_COMMENT_ALONE';
                 } else {
                     $token = 'T_SINGLE_LINE_COMMENT';
