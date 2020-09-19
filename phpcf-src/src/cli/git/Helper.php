@@ -35,7 +35,7 @@ abstract class Helper
      */
     public static function getFileStatus(array $files)
     {
-        $code = self::exec("status --porcelain " . implode(" ", array_map('escapeshellarg', $files)), $out, $err);
+        $code = self::exec("status --untracked-files=all --porcelain --ignored=traditional " . implode(" ", array_map('escapeshellarg', $files)), $out, $err);
         if ($code) {
             throw new \RuntimeException("Failed to get status: {$err}");
         }
@@ -65,13 +65,9 @@ abstract class Helper
         $blame_check = (strpos($git_file_status, 'A') === false && $git_file_status !== '?' && $git_file_status !== '??');
 
         if (!$blame_check) {
-            $line_numbers = [];
-            $lines = file($filename);
-            foreach ($lines as $k => $ln) {
-                $line_numbers[] = $k + 1;
-            }
-            return $line_numbers;
+            return range(1, count(file($filename)) + 1);
         }
+
         $cmd = 'git blame -sl ' . $commits . ' -- ' . escapeshellarg($filename) . ' 2>&1';
         if (self::DEBUG) {
             echo $cmd, PHP_EOL;
@@ -80,6 +76,9 @@ abstract class Helper
         exec($cmd, $out, $code);
         $out = implode(PHP_EOL, $out);
         if ($code) {
+            if (strpos($out, 'no such path') !== false) {
+                return range(1, count(file($filename)) + 1);
+            }
             throw new \RuntimeException("Blame fail: " . $out);
         }
 
