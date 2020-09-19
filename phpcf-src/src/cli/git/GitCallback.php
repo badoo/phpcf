@@ -117,9 +117,10 @@ class GitCallback
                 $commits_arg = Helper::commitsArg(null);
                 $lines = Helper::changedLines($file, $commits_arg, $file_statuses[$file]);
 
+                $Ctx->removeFile($file);
+
                 if ($lines) {
-                    $Ctx->removeFile($file);
-                    $Ctx->addFile($file . ':' . implode(',', $lines));
+                    $Ctx->addFile($file . implode(',', $lines));
                 }
             }
         }
