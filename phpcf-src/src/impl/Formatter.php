@@ -16,8 +16,8 @@ class Formatter implements \Phpcf\IFormatter
      */
     private $FSM;
 
-    /** 
-     * @var \Phpcf\Filter\StringAscii filter for non-ascii replacements in string tokens  
+    /**
+     * @var \Phpcf\Filter\StringAscii filter for non-ascii replacements in string tokens
      */
     private $StringFilter;
 
@@ -43,7 +43,7 @@ class Formatter implements \Phpcf\IFormatter
     protected $tokens = []; // source tokens
 
     /**
-     * @var array parsed tokens 
+     * @var array parsed tokens
      */
     private $ptokens = [];
 
@@ -88,6 +88,7 @@ class Formatter implements \Phpcf\IFormatter
         T_BOOLEAN_OR          => 'tokenHookBinary',
         T_LOGICAL_OR          => 'tokenHookBinary',
         T_LOGICAL_AND         => 'tokenHookBinary',
+        \T_LOGICAL_XOR         => 'tokenHookBinary',
         '"'                   => 'tokenHookStr',
         '`'                   => 'tokenHookStr',
         '('                   => 'tokenHookOpenBrace',
@@ -136,6 +137,7 @@ class Formatter implements \Phpcf\IFormatter
         PHPCF_EX_SHRINK_NLS            => 'execShrinkNewlines',
         PHPCF_EX_SHRINK_NLS_STRONG     => 'execShrinkNewlines',
         PHPCF_EX_NL_OR_SPACE           => 'execNewlineOrSpace',
+        PHPCF_EX_SPACE_IF_NLS          => 'execSpaceIfNls',
     ];
 
     /**
@@ -570,7 +572,9 @@ class Formatter implements \Phpcf\IFormatter
             $token = $this->tokens[$i];
             if (is_array($token) && $this->shouldIgnoreToken($token[0])) {
                 continue;
-            } else if ('&' === $token || (is_array($token) && T_VARIABLE === $token[0])) {
+            } else if ('&' === $token
+                || (is_array($token)
+                    && (T_VARIABLE === $token[0] || (defined('T_ELLIPSIS') && T_ELLIPSIS === $token[0])))) {
                 // '&' is reference in 'array &$variable'
                 $type = 'T_ARRAY_HINT';
                 break;
@@ -617,7 +621,7 @@ class Formatter implements \Phpcf\IFormatter
             ]
         ];
     }
-    
+
     // rewrite [ to T_ARRAY_SHORT(_ML), if necessary
     protected function tokenHookSquareBracket($idx_tokens, $i_value)
     {
@@ -644,7 +648,7 @@ class Formatter implements \Phpcf\IFormatter
                 break;
             }
         }
-        
+
         // multiline support
         if ($type === 'T_ARRAY_SHORT') {
             $length = $this->countExprLength(true, PHPCF_LONG_EXPRESSION_LENGTH);
@@ -788,7 +792,7 @@ class Formatter implements \Phpcf\IFormatter
 
             // look for whitespace, comment, variable or constant name after, e.g. "private"
             // if nothing was found, then it is end of property def (or real property def did not begin)
-            if ($tok[0] === T_VARIABLE || $tok[0] === T_STRING) {
+            if ($tok[0] === T_VARIABLE || $tok[0] === T_STRING || $tok[0] === T_NS_SEPARATOR) {
                 $is_property_def = true;
             } else if (($i_value[0] === T_CONST) && $this->isAllowedKeywordToken($tok[0])) {
                 // PHP7 allow to use some keywords as constant name
@@ -1144,12 +1148,12 @@ class Formatter implements \Phpcf\IFormatter
             }
         }
 
-        if ($i_value[1][0] == '#' || substr($i_value[1], 0, 2) == '//') {
+        if ($i_value[1][0] === '#' || substr($i_value[1], 0, 2) === '//') {
             // if previous token is whitespace with line feed, then it means that this comment takes whole line
             $prev_pos = key($this->tokens) - 2; // otherwise it is appended to some expression like this one
             if ($prev_pos > 1) {
                 $prev_tok = $this->tokens[$prev_pos];
-                if ($prev_pos[0] === T_WHITESPACE && strpos($prev_tok[1], "\n") !== false) {
+                if ($prev_tok[0] === T_WHITESPACE && strpos($prev_tok[1], "\n") !== false) {
                     $token = 'T_SINGLE_LINE_COMMENT_ALONE';
                 } else {
                     $token = 'T_SINGLE_LINE_COMMENT';
@@ -1180,7 +1184,7 @@ class Formatter implements \Phpcf\IFormatter
      * Rename T_STRING to T_FUNCTION_NAME if it is a function/method name:
      * Valid cases:  call_something()   $this->call_something()   function call_something()
      * Invalid cases:  self::MY_CONST   do_something(MY_CONST)  etc
-     * If string filter is present => apply it 
+     * If string filter is present => apply it
      * @param $idx_tokens
      * @param $i_value
      * @return array
@@ -1189,6 +1193,17 @@ class Formatter implements \Phpcf\IFormatter
     {
         $token = $idx_tokens[$i_value[0]];
         $this->current_line = $i_value[2];
+        $value = $i_value[1];
+
+        if ($value === 'fn') {
+            return [
+                [
+                    PHPCF_KEY_CODE  => 'T_FN',
+                    PHPCF_KEY_TEXT  => $value,
+                    PHPCF_KEY_LINE  => $this->current_line,
+                ],
+            ];
+        }
 
         for ($i = key($this->tokens); $i < count($this->tokens); $i++) {
             $tok = $this->tokens[$i];
@@ -1197,7 +1212,6 @@ class Formatter implements \Phpcf\IFormatter
             break;
         }
 
-        $value = $i_value[1];
         if ($this->StringFilter) {
             $filtered = $this->StringFilter->filter($value);
             $value = $filtered[0];
@@ -1225,8 +1239,16 @@ class Formatter implements \Phpcf\IFormatter
     {
         $next_pos = key($this->tokens);
         $prev_pos = key($this->tokens) - 2;
+        $prev_prev_pos = $prev_pos - 1;
         $token = is_array($i_value) ? $idx_tokens[$i_value[0]] : $i_value;
-        if ($this->tokens[$next_pos][0] === T_WHITESPACE && strpos($this->tokens[$next_pos][1], "\n") !== false) {
+
+        if ($this->tokens[$prev_prev_pos][0] === \T_FUNCTION) {
+            // allow methods names like and/or
+            $token = 'T_FUNCTION_NAME';
+        } else if ($this->tokens[$prev_prev_pos][0] === \T_STRING && in_array($this->tokens[$prev_pos][0], [\T_DOUBLE_COLON, \T_OBJECT_OPERATOR], true)) {
+            // allow static calls for methods with name and, or, etc
+            $token = 'T_FUNCTION_NAME';
+        } else if ($this->tokens[$next_pos][0] === T_WHITESPACE && strpos($this->tokens[$next_pos][1], "\n") !== false) {
             $token .= '_NL';
         } else if ($this->tokens[$prev_pos][0] === T_WHITESPACE && strpos($this->tokens[$prev_pos][1], "\n") !== false) {
             $token .= '_NL';
@@ -1358,7 +1380,7 @@ class Formatter implements \Phpcf\IFormatter
                     if ($this->shouldIgnoreToken($tok)) continue;
                     // function doSomethingGood(
                     //          ^ T_STRING     ^ arguments begin here
-                    if ($tok[0] === T_STRING && !$found_arguments_begin) {
+                    if (\in_array($tok[0], [T_STRING, \T_LOGICAL_AND, \T_LOGICAL_OR, \T_LOGICAL_XOR], true) && !$found_arguments_begin) {
                         $is_anonymous = false;
                     } else if (!$found_arguments_begin && $this->isAllowedKeywordToken($tok[0])) {
                         // PHP7 allow to use some keywords as function name
@@ -1651,6 +1673,14 @@ class Formatter implements \Phpcf\IFormatter
     {
         if (strpos($in, "\n") !== false) return "\n";
         return ' ';
+    }
+
+    private function execSpaceIfNls($in)
+    {
+        if (preg_match('/\n+/', $in)) {
+            return ' ';
+        }
+        return $in;
     }
 
     private function execSequence($sequence, $exec_ctx, $line)

@@ -1,0 +1,21 @@
+{
+  "name": "badoo/phpcf",
+  "type": "library",
+  "description": "The formatter was created to basically only modify whitespaces, for example line feed, tabs, spaces, etc.",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Badoo Development"
+    }
+  ],
+  "require": {
+    "php": "^7.0.17"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^8.4.3"
+  },
+  "config": {
+    "preferred-install": "source"
+  }
+}

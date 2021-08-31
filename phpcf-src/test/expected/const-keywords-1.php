@@ -11,3 +11,9 @@ class B
 {
     const FUNCTION = 1;
 }
+
+class C
+{
+    const INCLUDE = 1;
+    const DEFAULT = 2;
+}

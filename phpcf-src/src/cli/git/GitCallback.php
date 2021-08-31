@@ -94,14 +94,15 @@ class GitCallback
                 $commits_arg = Helper::commitsArg(null);
                 $lines = Helper::changedLines($file, $commits_arg, $file_statuses[$file]);
                 $lines = implode(',', $lines);
+
                 $Ctx->removeFile($file);
                 if ($lines) {
                     $file .= ':' . $lines;
-                } else {
-                    // if file has no changed lines - do not try to do anything with it
-                    continue;
                 }
-                $Ctx->addFile($file);
+
+                if ($lines || ($file_statuses[$file] !== 'M' && $file_statuses[$file] !== Helper::INVALID_STATUS)) {
+                    $Ctx->addFile($file);
+                }
             }
         } else {
             $files = $Ctx->getFiles();
@@ -117,9 +118,10 @@ class GitCallback
                 $commits_arg = Helper::commitsArg(null);
                 $lines = Helper::changedLines($file, $commits_arg, $file_statuses[$file]);
 
-                if ($lines) {
-                    $Ctx->removeFile($file);
-                    $Ctx->addFile($file . ':' . implode(',', $lines));
+                $Ctx->removeFile($file);
+
+                if ($lines || ($file_statuses[$file] !== 'M' && $file_statuses[$file] !== Helper::INVALID_STATUS)) {
+                    $Ctx->addFile($file . ($lines ? ':' . implode(',', $lines) : ''));
                 }
             }
         }

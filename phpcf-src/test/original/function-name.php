@@ -32,3 +32,21 @@ $one-> call
 $one
     -> call 
     ();
+
+
+class Two
+{
+    function include(){}
+
+    static function function() {
+
+    }
+
+    function aaaaaaa()
+    {
+
+
+    }
+}
+
+Two::function();

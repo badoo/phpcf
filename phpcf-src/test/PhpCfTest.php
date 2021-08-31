@@ -5,7 +5,7 @@
  */
 require_once __DIR__ . '/../src/init.php';
 
-class PHPCFTest extends PHPUnit_Framework_TestCase
+class PHPCFTest extends \PHPUnit\Framework\TestCase
 {
     private $Formatters = [];
     private static $debug = false;
@@ -13,13 +13,13 @@ class PHPCFTest extends PHPUnit_Framework_TestCase
     const ORIGINAL = "/original/";
     const EXPECTED = "/expected/";
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass() : void
     {
         $last = array_pop($_SERVER['argv']);
         self::$debug = ($last == '--debug');
     }
 
-    protected function setUp()
+    protected function setUp() : void
     {
         chdir(dirname(dirname(__DIR__)));
     }

@@ -27,7 +27,7 @@ if (!defined('PHPCF_DEFINED')) {
 
     /*************************************************************************************************/
     /*  PHPCF_EX-constants - special PHPCF_EXecutors processed at final output stage
-    /*  Note, that order is important -- first executor has higher priority than the last 
+    /*  Note, that order is important -- first executor has higher priority than the last
     /*    - DELETE: just delete, nuff said
     /*    - SHRINK: shrink to a single token
     /*    - CHECK: just check, if not exists - add, but don't shrink
@@ -44,13 +44,14 @@ if (!defined('PHPCF_DEFINED')) {
     define('PHPCF_EX_DELETE_SPACES',          108);  // convert to ""
     define('PHPCF_EX_SHRINK_SPACES',          109);  // convert to " "
     define('PHPCF_EX_NL_OR_SPACE',            110);  // accept either "\n" or " " as whitespace
+    define('PHPCF_EX_SPACE_IF_NLS',           111);  // insert a space instead of a sequence of newlines
 
     define('PHPCF_EX_INCREASE_INDENT',        200);
     define('PHPCF_EX_DECREASE_INDENT',        201);
-    
+
     // constant is used to determine whether or not need to split expression to several lines
     define('PHPCF_LONG_EXPRESSION_LENGTH', 120);
-    
+
     // custom token definitions are required for 'phpcf.so'
     define('T_STRING_CONTENTS',            10000);
     define('T_HEREDOC_CONTENTS',           10001);
@@ -66,8 +67,12 @@ if (!defined('PHPCF_DEFINED')) {
     define('T_ARRAY_SHORT_ML',             10011);
     define('T_ARRAY_HINT',                 10012);
     define('T_FROM',                       10013);
+    // needed, since used in hook
     if (!defined('T_YIELD_FROM')) {
-        // needed, since used in hook
         define('T_YIELD_FROM', 10014);
+    }
+    // needed, since used in hook
+    if (!defined('T_FN')) {
+        define('T_FN', 10015);
     }
 }
