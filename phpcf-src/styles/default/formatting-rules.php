@@ -2,7 +2,7 @@
 $casts = 'T_INT_CAST T_DOUBLE_CAST T_BOOL_CAST T_STRING_CAST T_ARRAY_CAST T_OBJECT_CAST T_UNSET_CAST';
 $binary_operators = 'T_AND_EQUAL T_CONCAT_EQUAL T_DIV_EQUAL T_IS_EQUAL T_IS_GREATER_OR_EQUAL '
     . 'T_IS_NOT_EQUAL T_IS_SMALLER_OR_EQUAL T_MINUS_EQUAL T_MOD_EQUAL T_MUL_EQUAL '
-    . 'T_OR_EQUAL T_PLUS_EQUAL T_SL_EQUAL T_SR_EQUAL T_XOR_EQUAL '
+    . 'T_OR_EQUAL T_PLUS_EQUAL T_SL_EQUAL T_SR_EQUAL T_XOR_EQUAL T_COALESCE_EQUAL '
     . '= + & - * ^ % / ? | < > . T_IS_IDENTICAL T_IS_NOT_IDENTICAL T_IS_EQUAL T_IS_NOT_EQUAL '
     . 'T_LOGICAL_AND T_BOOLEAN_AND T_LOGICAL_OR T_BOOLEAN_OR T_LOGICAL_XOR T_SL T_SR';
 
@@ -278,6 +278,12 @@ $controls = [
             PHPCF_KEY_DESCR_RIGHT => 'No changes',
             PHPCF_KEY_RIGHT => PHPCF_EX_DO_NOT_TOUCH_ANYTHING,
         ]
+    ],
+    '?' => [
+        'CTX_CLASS_DEF' => [
+            PHPCF_KEY_DESCR_RIGHT => 'No space after (?) in typed property declaration',
+            PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES_STRONG,
+        ],
     ],
     '?_NULLABLE_MARK' => [
         'CTX_FUNCTION_RETURN_D CTX_METHOD_RETURN_D' => [
@@ -632,6 +638,18 @@ $controls = [
             PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES_STRONG,
         ],
     ],
+    'T_STRING' => [
+        'CTX_CLASS_DEF' => [
+            PHPCF_KEY_DESCR_RIGHT => 'One whitespace after class property type',
+            PHPCF_KEY_RIGHT => PHPCF_EX_SPACE_IF_NLS,
+        ],
+    ],
+    'T_VARIABLE' => [
+        'CTX_CLASS_VARIABLE_D' => [
+            PHPCF_KEY_DESCR_LEFT => 'One whitespace before property name',
+            PHPCF_KEY_LEFT => PHPCF_EX_SHRINK_SPACES_STRONG,
+        ],
+    ],
     'T_DECLARE' => [
         PHPCF_KEY_ALL => [
             PHPCF_KEY_DESCR_RIGHT => 'One whitespace after "declare" and no new line',
@@ -722,9 +740,6 @@ $controls = [
     ],
 ];
 
-/**
- * Backward compatibility for 5.4
- */
 if (defined('T_FINALLY')) {
     $controls += [
         'T_FINALLY' => $onespace,
@@ -742,6 +757,12 @@ if (defined('T_FINALLY')) {
 if (defined('T_ELLIPSIS')) {
     $controls += [
         'T_ELLIPSIS' => [
+            'CTX_ARRAY_LONG_PARENTHESIS CTX_ARRAY_SHORT_ML' => [
+                PHPCF_KEY_DESCR_LEFT => '"..." to start on a new line inside arrays',
+                PHPCF_KEY_LEFT => PHPCF_EX_SHRINK_NLS,
+                PHPCF_KEY_DESCR_RIGHT => 'No space after "..."',
+                PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES_STRONG,
+            ],
             PHPCF_KEY_ALL => [
                 PHPCF_KEY_DESCR_LEFT => 'One space before "..."',
                 PHPCF_KEY_LEFT => PHPCF_EX_SHRINK_SPACES_STRONG,
@@ -755,6 +776,17 @@ if (defined('T_ELLIPSIS')) {
                 PHPCF_KEY_LEFT => PHPCF_EX_SHRINK_SPACES_STRONG,
                 PHPCF_KEY_DESCR_RIGHT => 'One space after "from"',
                 PHPCF_KEY_RIGHT => PHPCF_EX_SHRINK_SPACES_STRONG,
+            ],
+        ],
+    ];
+}
+
+if (defined('T_FN')) {
+    $controls += [
+        'T_FN' => [
+            PHPCF_KEY_ALL => [
+                PHPCF_KEY_DESCR_RIGHT => 'No space after "fn"',
+                PHPCF_KEY_RIGHT => PHPCF_EX_DELETE_SPACES_STRONG,
             ],
         ],
     ];

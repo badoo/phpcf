@@ -27,7 +27,7 @@ function returnFloat()
 : float {}
 
 function returnString()
-: float {}
+: string {}
 
 function returnCallable()
 : callable {}
@@ -56,7 +56,7 @@ class Test {
     : float {}
 
     function returnString()
-    : float {}
+    : string {}
 
     function returnCallable()
     : callable {}
@@ -89,7 +89,7 @@ trait TestTrait {
     : float {}
 
     function returnString()
-    : float {}
+    : string {}
 
     function returnCallable()
     : callable {}
@@ -118,7 +118,7 @@ interface TestInterface {
     : float;
 
     function returnString()
-    : float;
+    : string;
 
     function returnCallable()
     : callable;

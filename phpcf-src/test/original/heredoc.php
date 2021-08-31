@@ -39,3 +39,11 @@ EOF;
 
     exit(0);
 }
+
+var_dump(
+/** @lang JavaScript */
+    <<<JS
+setTimeout(function(){el.setAttribute("style",os);},300);
+JS
+    , true
+);

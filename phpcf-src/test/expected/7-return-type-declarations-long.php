@@ -42,7 +42,7 @@ function returnFloat(
 function returnString(
     $a,
     $b
-) : float {}
+) : string {}
 
 function returnCallable(
     $a,
@@ -90,7 +90,7 @@ class Test
     function returnString(
         $a,
         $b
-    ) : float {}
+    ) : string {}
 
     function returnCallable(
         $a,
@@ -144,7 +144,7 @@ trait TestTrait
     function returnString(
         $a,
         $b
-    ) : float {}
+    ) : string {}
 
     function returnCallable(
         $a,
@@ -192,7 +192,7 @@ interface TestInterface
     function returnString(
         $a,
         $b
-    ) : float;
+    ) : string;
 
     function returnCallable(
         $a,
